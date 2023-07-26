@@ -490,8 +490,17 @@ func (s *Service) mergeLastWinEnvironments(environments []string) {
 }
 
 func (s *Service) mergeLastWinImage(image string) {
-	if s.Image != image {
+	switch {
+	case len(s.Image) == 0 && len(image) != 0:
 		s.Image = image
+	case len(s.Image) != 0 && len(image) == 0:
+		fallthrough
+	case len(s.Image) == 0 && len(image) == 0:
+		return
+	default:
+		if s.Image != image {
+			s.Image = image
+		}
 	}
 }
 

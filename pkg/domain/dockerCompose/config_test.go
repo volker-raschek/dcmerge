@@ -735,6 +735,41 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 		},
 
+		// Image
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "",
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "FooBar",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "FooBar",
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+		},
+
 		// Labels
 		{
 			serviceDeploymentA: &dockerCompose.Service{
