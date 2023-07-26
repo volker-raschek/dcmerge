@@ -43,7 +43,7 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 		Version: version,
 	}
 	rootCmd.Flags().BoolP("last-win", "l", false, "Overwrite existing attributes")
-	rootCmd.Flags().BoolP("output-file", "o", false, "Write instead on stdout into a file")
+	rootCmd.Flags().StringP("output-file", "o", "", "Write instead on stdout into a file")
 	rootCmd.AddCommand(completionCmd)
 
 	return rootCmd.Execute()
