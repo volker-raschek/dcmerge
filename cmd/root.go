@@ -35,7 +35,7 @@ func Execute(version string) error {
 
 	rootCmd := &cobra.Command{
 		Use:   "dcmerge",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Short: "Merge docker-compose files from multiple resources",
 		Example: `dcmerge docker-compose.yml ./integration-test/docker-compose.yml
 dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.yml`,
