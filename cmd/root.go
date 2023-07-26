@@ -42,7 +42,7 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 		RunE:    run,
 		Version: version,
 	}
-	rootCmd.Flags().BoolP("last-merge", "l", false, "Overwrite existing attributes")
+	rootCmd.Flags().BoolP("last-win", "l", false, "Overwrite existing attributes")
 	rootCmd.Flags().BoolP("output-file", "o", false, "Write instead on stdout into a file")
 	rootCmd.AddCommand(completionCmd)
 
@@ -50,9 +50,9 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	mergeLastWin, err := cmd.Flags().GetBool("last-merge")
+	mergeLastWin, err := cmd.Flags().GetBool("last-win")
 	if err != nil {
-		return fmt.Errorf("Failed to parse flag last-merge: %s", err)
+		return fmt.Errorf("Failed to parse flag last-win: %s", err)
 	}
 
 	outputFile, err := cmd.Flags().GetString("output-file")
