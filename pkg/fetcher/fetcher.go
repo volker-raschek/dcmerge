@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"git.cryptic.systems/volker.raschek/dcmerge/pkg/domain/dockerCompose"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 func Fetch(urls ...string) ([]*dockerCompose.Config, error) {
