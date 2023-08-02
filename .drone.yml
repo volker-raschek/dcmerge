@@ -52,12 +52,94 @@ trigger:
 ---
 kind: pipeline
 type: docker
+name: unit-test-amd64
+
+clone:
+  disable: true
+
+platform:
+  arch: amd64
+
+steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
+- name: unit-test
+  commands:
+  - go test -v ./...
+  image: docker.io/library/golang:1.20.6
+
+trigger:
+  event:
+    exclude:
+    - tag
+
+---
+kind: pipeline
+type: docker
+name: unit-test-arm-v7
+
+clone:
+  disable: true
+
+platform:
+  arch: arm
+
+steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
+- name: unit-test
+  commands:
+  - go test -v ./...
+  image: docker.io/library/golang:1.20.6
+
+trigger:
+  event:
+    include:
+    - pull_request
+    - push
+    exclude:
+    - tag
+
+---
+kind: pipeline
+type: docker
+name: unit-test-arm64
+
+clone:
+  disable: true
+
+platform:
+  arch: arm64
+
+steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
+- name: unit-test
+  commands:
+  - go test -v ./...
+  image: docker.io/library/golang:1.20.6
+
+trigger:
+  event:
+    include:
+    - pull_request
+    - push
+    exclude:
+    - tag
+
+---
+kind: pipeline
+type: docker
 name: dry-run-amd64
 
 clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-amd64
 
 platform:
@@ -124,6 +206,7 @@ clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-arm-v7
 
 platform:
@@ -190,6 +273,7 @@ clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-arm64
 
 platform:
@@ -250,102 +334,13 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: unit-test-amd64
-
-clone:
-  disable: true
-
-depends_on:
-- linter
-
-platform:
-  arch: amd64
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.2.1
-
-- name: unit-test
-  commands:
-  - go test -v ./...
-  image: docker.io/library/golang:1.20.6
-
-trigger:
-  event:
-    exclude:
-    - tag
-
----
-kind: pipeline
-type: docker
-name: unit-test-arm-v7
-
-clone:
-  disable: true
-
-depends_on:
-- linter
-
-platform:
-  arch: arm
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.2.1
-
-- name: unit-test
-  commands:
-  - go test -v ./...
-  image: docker.io/library/golang:1.20.6
-
-trigger:
-  event:
-    include:
-    - pull_request
-    - push
-    exclude:
-    - tag
-
----
-kind: pipeline
-type: docker
-name: unit-test-arm64
-
-clone:
-  disable: true
-
-depends_on:
-- linter
-
-platform:
-  arch: arm64
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.2.1
-
-- name: unit-test
-  commands:
-  - go test -v ./...
-  image: docker.io/library/golang:1.20.6
-
-trigger:
-  event:
-    include:
-    - pull_request
-    - push
-    exclude:
-    - tag
-
----
-kind: pipeline
-type: docker
 name: latest-amd64
 
 clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-amd64
 
 platform:
@@ -410,6 +405,7 @@ clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-arm-v7
 
 platform:
@@ -474,6 +470,7 @@ clone:
   disable: true
 
 depends_on:
+- linter
 - unit-test-arm64
 
 platform:
