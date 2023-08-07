@@ -10,7 +10,7 @@ RUN make install \
       PREFIX=/usr \
       VERSION=${VERSION}
 
-FROM docker.io/library/alpine:3.18.2
+FROM docker.io/library/alpine:3.18.3
 
 COPY --from=build /cache /
 
