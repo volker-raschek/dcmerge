@@ -1949,6 +1949,88 @@ func TestServiceULimitsNoFile_Equal(t *testing.T) {
 	}
 }
 
+func TestServiceULimitsNoFile_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		ServiceULimitsNoFileA        *dockerCompose.ServiceULimitsNoFile
+		ServiceULimitsNoFileB        *dockerCompose.ServiceULimitsNoFile
+		expectedServiceULimitsNoFile *dockerCompose.ServiceULimitsNoFile
+	}{
+		{
+			ServiceULimitsNoFileA:        nil,
+			ServiceULimitsNoFileB:        nil,
+			expectedServiceULimitsNoFile: nil,
+		},
+		{
+			ServiceULimitsNoFileA:        &dockerCompose.ServiceULimitsNoFile{},
+			ServiceULimitsNoFileB:        nil,
+			expectedServiceULimitsNoFile: &dockerCompose.ServiceULimitsNoFile{},
+		},
+		{
+			ServiceULimitsNoFileA: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+			ServiceULimitsNoFileB: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+			expectedServiceULimitsNoFile: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+		},
+		{
+			ServiceULimitsNoFileA: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+			ServiceULimitsNoFileB: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 20,
+				Soft: 10,
+			},
+			expectedServiceULimitsNoFile: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+		},
+		{
+			ServiceULimitsNoFileA: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+			ServiceULimitsNoFileB: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 20,
+			},
+			expectedServiceULimitsNoFile: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+		},
+		{
+			ServiceULimitsNoFileA: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+			ServiceULimitsNoFileB: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 20,
+				Soft: 20,
+			},
+			expectedServiceULimitsNoFile: &dockerCompose.ServiceULimitsNoFile{
+				Hard: 10,
+				Soft: 10,
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.ServiceULimitsNoFileA.MergeFirstWin(testCase.ServiceULimitsNoFileB)
+		require.True(testCase.expectedServiceULimitsNoFile.Equal(testCase.ServiceULimitsNoFileA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceULimitsNoFile_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
