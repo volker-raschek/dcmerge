@@ -939,6 +939,29 @@ func (sn *ServiceNetwork) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only attributes of the passed
+// serviceNetwork if they are undefined.
+func (sn *ServiceNetwork) MergeFirstWin(serviceNetwork *ServiceNetwork) {
+	switch {
+	case sn == nil && serviceNetwork == nil:
+		fallthrough
+	case sn != nil && serviceNetwork == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer sn *ServiceNetwork to a new
+	// initialized ServiceNetwork without returning the serviceNetwork it self.
+	//
+	// case l == nil && serviceULimits != nil:
+	// 	l = NewServiceULimits()
+	// 	fallthrough
+
+	case sn == nil && serviceNetwork != nil:
+		sn = serviceNetwork
+	default:
+		sn.mergeFirstWinAliases(serviceNetwork.Aliases)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // serviceNetwork with the existing one.
 func (sn *ServiceNetwork) MergeLastWin(serviceNetwork *ServiceNetwork) {
@@ -963,9 +986,17 @@ func (sn *ServiceNetwork) MergeLastWin(serviceNetwork *ServiceNetwork) {
 	}
 }
 
+func (sn *ServiceNetwork) mergeFirstWinAliases(aliases []string) {
+	for _, alias := range aliases {
+		if !existsInSlice(sn.Aliases, alias) && len(alias) > 0 {
+			sn.Aliases = append(sn.Aliases, alias)
+		}
+	}
+}
+
 func (sn *ServiceNetwork) mergeLastWinAliases(aliases []string) {
 	for _, alias := range aliases {
-		if !existsInSlice(sn.Aliases, alias) {
+		if !existsInSlice(sn.Aliases, alias) && len(alias) > 0 {
 			sn.Aliases = append(sn.Aliases, alias)
 		}
 	}

@@ -1736,6 +1736,65 @@ func TestServiceNetwork_Equal(t *testing.T) {
 	}
 }
 
+func TestServiceNetwork_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		ServiceNetworkA        *dockerCompose.ServiceNetwork
+		ServiceNetworkB        *dockerCompose.ServiceNetwork
+		expectedServiceNetwork *dockerCompose.ServiceNetwork
+	}{
+		{
+			ServiceNetworkA:        nil,
+			ServiceNetworkB:        nil,
+			expectedServiceNetwork: nil,
+		},
+		{
+			ServiceNetworkA:        &dockerCompose.ServiceNetwork{},
+			ServiceNetworkB:        nil,
+			expectedServiceNetwork: &dockerCompose.ServiceNetwork{},
+		},
+		{
+			ServiceNetworkA: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+			ServiceNetworkB: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+			expectedServiceNetwork: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+		},
+		{
+			ServiceNetworkA: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+			ServiceNetworkB: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.local"},
+			},
+			expectedServiceNetwork: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com", "my-app.example.local"},
+			},
+		},
+		{
+			ServiceNetworkA: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+			ServiceNetworkB: &dockerCompose.ServiceNetwork{
+				Aliases: []string{""},
+			},
+			expectedServiceNetwork: &dockerCompose.ServiceNetwork{
+				Aliases: []string{"my-app.example.com"},
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.ServiceNetworkA.MergeFirstWin(testCase.ServiceNetworkB)
+		require.True(testCase.expectedServiceNetwork.Equal(testCase.ServiceNetworkA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceNetwork_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
