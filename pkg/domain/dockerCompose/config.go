@@ -1067,6 +1067,27 @@ func (nf *ServiceULimitsNoFile) Equal(equalable Equalable) bool {
 	}
 }
 
+func (nf *ServiceULimitsNoFile) MergeFirstWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
+	switch {
+	case nf == nil && serviceULimitsNoFile == nil:
+		fallthrough
+	case nf != nil && serviceULimitsNoFile == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer nf *ServiceULimitsNoFile
+	// to a new initialized ServiceULimitsNoFile without returning the serviceULimitsNoFile
+	// it self.
+	//
+	// case nf == nil && serviceULimitsNoFile != nil:
+	// 	nf = NewServiceULimitsNoFile()
+	// 	fallthrough
+
+	default:
+		nf.mergeFirstWinHard(serviceULimitsNoFile.Hard)
+		nf.mergeFirstWinSoft(serviceULimitsNoFile.Soft)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // ServiceULimits with the existing one.
 func (nf *ServiceULimitsNoFile) MergeLastWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
@@ -1088,6 +1109,20 @@ func (nf *ServiceULimitsNoFile) MergeLastWin(serviceULimitsNoFile *ServiceULimit
 		nf.mergeLastWinHard(serviceULimitsNoFile.Hard)
 		nf.mergeLastWinSoft(serviceULimitsNoFile.Soft)
 	}
+}
+
+func (nf *ServiceULimitsNoFile) mergeFirstWinHard(hard uint) {
+	if nf.Hard != hard {
+		return
+	}
+	nf.Hard = hard
+}
+
+func (nf *ServiceULimitsNoFile) mergeFirstWinSoft(soft uint) {
+	if nf.Soft != soft {
+		return
+	}
+	nf.Soft = soft
 }
 
 func (nf *ServiceULimitsNoFile) mergeLastWinHard(hard uint) {
