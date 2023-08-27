@@ -1295,6 +1295,68 @@ func TestSecretDeploy_Equal(t *testing.T) {
 	}
 }
 
+func TestServiceDeploy_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		serviceDeploymentA        *dockerCompose.ServiceDeploy
+		serviceDeploymentB        *dockerCompose.ServiceDeploy
+		expectedServiceDeployment *dockerCompose.ServiceDeploy
+	}{
+		{
+			serviceDeploymentA:        nil,
+			serviceDeploymentB:        nil,
+			expectedServiceDeployment: nil,
+		},
+		{
+			serviceDeploymentA: &dockerCompose.ServiceDeploy{
+				Resources: nil,
+			},
+			serviceDeploymentB: &dockerCompose.ServiceDeploy{
+				Resources: nil,
+			},
+			expectedServiceDeployment: &dockerCompose.ServiceDeploy{
+				Resources: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.ServiceDeploy{
+				Resources: &dockerCompose.ServiceDeployResources{
+					Limits: nil,
+				},
+			},
+			serviceDeploymentB: &dockerCompose.ServiceDeploy{
+				Resources: nil,
+			},
+			expectedServiceDeployment: &dockerCompose.ServiceDeploy{
+				Resources: &dockerCompose.ServiceDeployResources{
+					Limits: nil,
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.ServiceDeploy{
+				Resources: nil,
+			},
+			serviceDeploymentB: &dockerCompose.ServiceDeploy{
+				Resources: &dockerCompose.ServiceDeployResources{
+					Limits: nil,
+				},
+			},
+			expectedServiceDeployment: &dockerCompose.ServiceDeploy{
+				Resources: &dockerCompose.ServiceDeployResources{
+					Limits: nil,
+				},
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.serviceDeploymentA.MergeLastWin(testCase.serviceDeploymentB)
+		require.True(testCase.expectedServiceDeployment.Equal(testCase.serviceDeploymentA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceDeploy_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
@@ -1411,135 +1473,6 @@ func TestSecretDeployResources_Equal(t *testing.T) {
 
 	for i, testCase := range testCases {
 		require.Equal(testCase.expectedResult, testCase.equalableA.Equal(testCase.equalableB), "Failed test case %v", i)
-	}
-}
-
-func TestServiceDeployResources_MergeLastWin(t *testing.T) {
-	require := require.New(t)
-
-	testCases := []struct {
-		serviceDeploymentResourcesA        *dockerCompose.ServiceDeployResources
-		serviceDeploymentResourcesB        *dockerCompose.ServiceDeployResources
-		expectedServiceDeploymentResources *dockerCompose.ServiceDeployResources
-	}{
-		{
-			serviceDeploymentResourcesA:        nil,
-			serviceDeploymentResourcesB:        nil,
-			expectedServiceDeploymentResources: nil,
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Limits: nil,
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Limits: nil,
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "2",
-					Memory: "1000",
-				},
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Limits: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "2",
-					Memory: "1000",
-				},
-			},
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Reservations: nil,
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Reservations: nil,
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-		},
-		{
-			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "1",
-					Memory: "500",
-				},
-			},
-			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "2",
-					Memory: "1000",
-				},
-			},
-			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
-				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
-					CPUs:   "2",
-					Memory: "1000",
-				},
-			},
-		},
-	}
-
-	for i, testCase := range testCases {
-		testCase.serviceDeploymentResourcesA.MergeLastWin(testCase.serviceDeploymentResourcesB)
-		require.True(testCase.expectedServiceDeploymentResources.Equal(testCase.serviceDeploymentResourcesA), "Failed test case %v", i)
 	}
 }
 
@@ -1688,6 +1621,135 @@ func TestServiceDeployResources_MergeFirstWin(t *testing.T) {
 
 	for i, testCase := range testCases {
 		testCase.serviceDeploymentResourcesA.MergeFirstWin(testCase.serviceDeploymentResourcesB)
+		require.True(testCase.expectedServiceDeploymentResources.Equal(testCase.serviceDeploymentResourcesA), "Failed test case %v", i)
+	}
+}
+
+func TestServiceDeployResources_MergeLastWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		serviceDeploymentResourcesA        *dockerCompose.ServiceDeployResources
+		serviceDeploymentResourcesB        *dockerCompose.ServiceDeployResources
+		expectedServiceDeploymentResources *dockerCompose.ServiceDeployResources
+	}{
+		{
+			serviceDeploymentResourcesA:        nil,
+			serviceDeploymentResourcesB:        nil,
+			expectedServiceDeploymentResources: nil,
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: nil,
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: nil,
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: nil,
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: nil,
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.serviceDeploymentResourcesA.MergeLastWin(testCase.serviceDeploymentResourcesB)
 		require.True(testCase.expectedServiceDeploymentResources.Equal(testCase.serviceDeploymentResourcesA), "Failed test case %v", i)
 	}
 }

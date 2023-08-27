@@ -732,6 +732,28 @@ func (sd *ServiceDeploy) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin merges adds or overwrite the attributes of the passed
+// serviceDeploy with the existing one.
+func (sd *ServiceDeploy) MergeFirstWin(serviceDeploy *ServiceDeploy) {
+	switch {
+	case sd == nil && serviceDeploy == nil:
+		fallthrough
+	case sd != nil && serviceDeploy == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer sd *ServiceDeploy
+	// to a new initialized serviceDeploy without returning the ServiceDeploy
+	// it self.
+	//
+	// case sd == nil && serviceDeploy != nil:
+	// 	sd = NewServiceDeploy()
+	// 	fallthrough
+
+	default:
+		sd.mergeFirstWinDeployResources(serviceDeploy.Resources)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // serviceDeploy with the existing one.
 func (sd *ServiceDeploy) MergeLastWin(serviceDeploy *ServiceDeploy) {
@@ -751,6 +773,19 @@ func (sd *ServiceDeploy) MergeLastWin(serviceDeploy *ServiceDeploy) {
 
 	default:
 		sd.mergeLastWinDeployResources(serviceDeploy.Resources)
+	}
+}
+
+func (sd *ServiceDeploy) mergeFirstWinDeployResources(resources *ServiceDeployResources) {
+	switch {
+	case sd.Resources == nil && resources != nil:
+		sd.Resources = resources
+	case sd.Resources != nil && resources == nil:
+		fallthrough
+	case sd.Resources == nil && resources == nil:
+		return
+	default:
+		sd.Resources.MergeFirstWin(resources)
 	}
 }
 
