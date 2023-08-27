@@ -798,6 +798,27 @@ func (sdr *ServiceDeployResources) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only attributes of the passed serviceDeployResources if
+// they are not already exists.
+func (sdr *ServiceDeployResources) MergeFirstWin(serviceDeployResources *ServiceDeployResources) {
+	switch {
+	case sdr == nil && serviceDeployResources == nil:
+		fallthrough
+	case sdr != nil && serviceDeployResources == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer sdr *ServiceDeployResources
+	// to a new initialized serviceDeployResources without returning the
+	// serviceDeployResources it self.
+	case sdr == nil && serviceDeployResources != nil:
+		sdr = NewServiceDeployResources()
+		fallthrough
+	default:
+		sdr.mergeFirstWinLimits(serviceDeployResources.Limits)
+		sdr.mergeFirstWinReservations(serviceDeployResources.Reservations)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // serviceDeployResources with the existing one.
 func (sdr *ServiceDeployResources) MergeLastWin(serviceDeployResources *ServiceDeployResources) {
@@ -816,6 +837,32 @@ func (sdr *ServiceDeployResources) MergeLastWin(serviceDeployResources *ServiceD
 	default:
 		sdr.mergeLastWinLimits(serviceDeployResources.Limits)
 		sdr.mergeLastWinReservations(serviceDeployResources.Reservations)
+	}
+}
+
+func (sdr *ServiceDeployResources) mergeFirstWinLimits(limits *ServiceDeployResourcesLimits) {
+	switch {
+	case sdr.Limits == nil && limits != nil:
+		sdr.Limits = limits
+	case sdr.Limits != nil && limits == nil:
+		fallthrough
+	case sdr.Limits == nil && limits == nil:
+		return
+	default:
+		sdr.Limits.MergeFirstWin(limits)
+	}
+}
+
+func (sdr *ServiceDeployResources) mergeFirstWinReservations(reservations *ServiceDeployResourcesLimits) {
+	switch {
+	case sdr.Reservations == nil && reservations != nil:
+		sdr.Reservations = reservations
+	case sdr.Reservations != nil && reservations == nil:
+		fallthrough
+	case sdr.Reservations == nil && reservations == nil:
+		return
+	default:
+		sdr.Reservations.MergeFirstWin(reservations)
 	}
 }
 
@@ -991,7 +1038,8 @@ func (sn *ServiceNetwork) MergeFirstWin(serviceNetwork *ServiceNetwork) {
 	// 	fallthrough
 
 	case sn == nil && serviceNetwork != nil:
-		sn = serviceNetwork
+		sn = NewServiceNetwork()
+		fallthrough
 	default:
 		sn.mergeFirstWinAliases(serviceNetwork.Aliases)
 	}

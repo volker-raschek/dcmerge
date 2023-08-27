@@ -1543,6 +1543,155 @@ func TestServiceDeployResources_MergeLastWin(t *testing.T) {
 	}
 }
 
+func TestServiceDeployResources_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		serviceDeploymentResourcesA        *dockerCompose.ServiceDeployResources
+		serviceDeploymentResourcesB        *dockerCompose.ServiceDeployResources
+		expectedServiceDeploymentResources *dockerCompose.ServiceDeployResources
+	}{
+		{
+			serviceDeploymentResourcesA:        nil,
+			serviceDeploymentResourcesB:        nil,
+			expectedServiceDeploymentResources: nil,
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: nil,
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: nil,
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Limits: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: nil,
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: nil,
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "2",
+					Memory: "1000",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+		{
+			serviceDeploymentResourcesA: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "",
+					Memory: "",
+				},
+			},
+			serviceDeploymentResourcesB: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+			expectedServiceDeploymentResources: &dockerCompose.ServiceDeployResources{
+				Reservations: &dockerCompose.ServiceDeployResourcesLimits{
+					CPUs:   "1",
+					Memory: "500",
+				},
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.serviceDeploymentResourcesA.MergeFirstWin(testCase.serviceDeploymentResourcesB)
+		require.True(testCase.expectedServiceDeploymentResources.Equal(testCase.serviceDeploymentResourcesA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceDeployResourcesLimits_Equal(t *testing.T) {
 	require := require.New(t)
 
