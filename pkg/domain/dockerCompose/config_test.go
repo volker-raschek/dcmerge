@@ -2079,6 +2079,65 @@ func TestVolume_Equal(t *testing.T) {
 	}
 }
 
+func TestVolume_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		volumeA        *dockerCompose.Volume
+		volumeB        *dockerCompose.Volume
+		expectedVolume *dockerCompose.Volume
+	}{
+		{
+			volumeA:        nil,
+			volumeB:        nil,
+			expectedVolume: nil,
+		},
+		{
+			volumeA:        &dockerCompose.Volume{},
+			volumeB:        nil,
+			expectedVolume: &dockerCompose.Volume{},
+		},
+		{
+			volumeA: &dockerCompose.Volume{
+				External: true,
+			},
+			volumeB: &dockerCompose.Volume{
+				External: true,
+			},
+			expectedVolume: &dockerCompose.Volume{
+				External: true,
+			},
+		},
+		{
+			volumeA: &dockerCompose.Volume{
+				External: true,
+			},
+			volumeB: &dockerCompose.Volume{
+				External: false,
+			},
+			expectedVolume: &dockerCompose.Volume{
+				External: true,
+			},
+		},
+		{
+			volumeA: &dockerCompose.Volume{
+				External: false,
+			},
+			volumeB: &dockerCompose.Volume{
+				External: true,
+			},
+			expectedVolume: &dockerCompose.Volume{
+				External: true,
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.volumeA.MergeFirstWin(testCase.volumeB)
+		require.True(testCase.expectedVolume.Equal(testCase.volumeA), "Failed test case %v", i)
+	}
+}
+
 func TestVolume_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
