@@ -877,6 +877,29 @@ func (sdrl *ServiceDeployResourcesLimits) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only attributes of the passed serviceDeployResourcesLimits
+// if they are not already exists.
+func (sdrl *ServiceDeployResourcesLimits) MergeFirstWin(serviceDeployResourcesLimits *ServiceDeployResourcesLimits) {
+	switch {
+	case sdrl == nil && serviceDeployResourcesLimits == nil:
+		fallthrough
+	case sdrl != nil && serviceDeployResourcesLimits == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer sdrl *ServiceDeployResourcesLimits
+	// to a new initialized serviceDeployResourcesLimits without returning the
+	// serviceDeployResourcesLimits it self.
+	//
+	// case sdrl == nil && serviceDeployResourcesLimits != nil:
+	// 	sdrl = NewServiceDeployResourcesLimits()
+	// 	fallthrough
+
+	default:
+		sdrl.mergeFirstWinCPUs(serviceDeployResourcesLimits.CPUs)
+		sdrl.mergeFirstWinMemory(serviceDeployResourcesLimits.Memory)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // serviceDeployResourcesLimits with the existing one.
 func (sdrl *ServiceDeployResourcesLimits) MergeLastWin(serviceDeployResourcesLimits *ServiceDeployResourcesLimits) {
@@ -897,6 +920,18 @@ func (sdrl *ServiceDeployResourcesLimits) MergeLastWin(serviceDeployResourcesLim
 	default:
 		sdrl.mergeLastWinCPUs(serviceDeployResourcesLimits.CPUs)
 		sdrl.mergeLastWinMemory(serviceDeployResourcesLimits.Memory)
+	}
+}
+
+func (sdrl *ServiceDeployResourcesLimits) mergeFirstWinCPUs(cpus string) {
+	if len(sdrl.CPUs) <= 0 {
+		sdrl.CPUs = cpus
+	}
+}
+
+func (sdrl *ServiceDeployResourcesLimits) mergeFirstWinMemory(memory string) {
+	if len(sdrl.Memory) <= 0 {
+		sdrl.Memory = memory
 	}
 }
 

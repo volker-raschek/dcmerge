@@ -1603,6 +1603,99 @@ func TestServiceDeployResourcesLimits_Equal(t *testing.T) {
 	}
 }
 
+func TestServiceDeployResourcesLimits_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		serviceDeploymentResourcesLimitsA        *dockerCompose.ServiceDeployResourcesLimits
+		serviceDeploymentResourcesLimitsB        *dockerCompose.ServiceDeployResourcesLimits
+		expectedServiceDeploymentResourcesLimits *dockerCompose.ServiceDeployResourcesLimits
+	}{
+		{
+			serviceDeploymentResourcesLimitsA:        nil,
+			serviceDeploymentResourcesLimitsB:        nil,
+			expectedServiceDeploymentResourcesLimits: nil,
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+			serviceDeploymentResourcesLimitsB: nil,
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{},
+			serviceDeploymentResourcesLimitsB: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "",
+				Memory: "",
+			},
+			serviceDeploymentResourcesLimitsB: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+			serviceDeploymentResourcesLimitsB: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs:   "1",
+				Memory: "500",
+			},
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs: "1",
+			},
+			serviceDeploymentResourcesLimitsB: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs: "2",
+			},
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				CPUs: "1",
+			},
+		},
+		{
+			serviceDeploymentResourcesLimitsA: &dockerCompose.ServiceDeployResourcesLimits{
+				Memory: "500",
+			},
+			serviceDeploymentResourcesLimitsB: &dockerCompose.ServiceDeployResourcesLimits{
+				Memory: "1000",
+			},
+			expectedServiceDeploymentResourcesLimits: &dockerCompose.ServiceDeployResourcesLimits{
+				Memory: "500",
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.serviceDeploymentResourcesLimitsA.MergeFirstWin(testCase.serviceDeploymentResourcesLimitsB)
+		require.True(testCase.expectedServiceDeploymentResourcesLimits.Equal(testCase.serviceDeploymentResourcesLimitsA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceDeployResourcesLimits_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
