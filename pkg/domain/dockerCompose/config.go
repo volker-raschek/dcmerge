@@ -1129,6 +1129,25 @@ func (v *Volume) Equal(equalable Equalable) bool {
 	}
 }
 
+func (v *Volume) MergeFirstWin(volume *Volume) {
+	switch {
+	case v == nil && volume == nil:
+		fallthrough
+	case v != nil && volume == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer v *Volume to a new
+	// initialized Volume without returning the volume it self.
+	//
+	// case v == nil && volume != nil:
+	// 	v = NewVolume()
+	// 	fallthrough
+
+	default:
+		v.mergeFirstWinExternal(volume.External)
+	}
+}
+
 func (v *Volume) MergeLastWin(volume *Volume) {
 	switch {
 	case v == nil && volume == nil:
@@ -1146,6 +1165,13 @@ func (v *Volume) MergeLastWin(volume *Volume) {
 	default:
 		v.mergeLastWinExternal(volume.External)
 	}
+}
+
+func (v *Volume) mergeFirstWinExternal(external bool) {
+	if v.External {
+		return
+	}
+	v.External = true
 }
 
 func (v *Volume) mergeLastWinExternal(external bool) {
