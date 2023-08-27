@@ -1899,6 +1899,54 @@ func TestServiceULimits_MergeLastWin(t *testing.T) {
 	}
 }
 
+func TestServiceULimits_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		ServiceULimitsA        *dockerCompose.ServiceULimits
+		ServiceULimitsB        *dockerCompose.ServiceULimits
+		expectedServiceULimits *dockerCompose.ServiceULimits
+	}{
+		{
+			ServiceULimitsA:        nil,
+			ServiceULimitsB:        nil,
+			expectedServiceULimits: nil,
+		},
+		{
+			ServiceULimitsA:        &dockerCompose.ServiceULimits{},
+			ServiceULimitsB:        nil,
+			expectedServiceULimits: &dockerCompose.ServiceULimits{},
+		},
+		{
+			ServiceULimitsA: &dockerCompose.ServiceULimits{
+				NProc: 10,
+			},
+			ServiceULimitsB: &dockerCompose.ServiceULimits{
+				NProc: 10,
+			},
+			expectedServiceULimits: &dockerCompose.ServiceULimits{
+				NProc: 10,
+			},
+		},
+		{
+			ServiceULimitsA: &dockerCompose.ServiceULimits{
+				NProc: 10,
+			},
+			ServiceULimitsB: &dockerCompose.ServiceULimits{
+				NProc: 20,
+			},
+			expectedServiceULimits: &dockerCompose.ServiceULimits{
+				NProc: 10,
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.ServiceULimitsA.MergeFirstWin(testCase.ServiceULimitsB)
+		require.True(testCase.expectedServiceULimits.Equal(testCase.ServiceULimitsA), "Failed test case %v", i)
+	}
+}
+
 func TestServiceULimitsNoFile_Equal(t *testing.T) {
 	require := require.New(t)
 

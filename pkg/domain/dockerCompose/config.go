@@ -1002,6 +1002,28 @@ func (l *ServiceULimits) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only the attributes of the passed ServiceULimits they are
+// undefined.
+func (l *ServiceULimits) MergeFirstWin(serviceULimits *ServiceULimits) {
+	switch {
+	case l == nil && serviceULimits == nil:
+		fallthrough
+	case l != nil && serviceULimits == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer l *ServiceULimits to a new
+	// initialized ServiceULimits without returning the serviceULimits it self.
+	//
+	// case l == nil && serviceULimits != nil:
+	// 	l = NewServiceULimits()
+	// 	fallthrough
+
+	default:
+		l.mergeFirstWinNProc(serviceULimits.NProc)
+		l.mergeFirstWinNoFile(serviceULimits.NoFile)
+	}
+}
+
 // MergeLastWin merges adds or overwrite the attributes of the passed
 // ServiceULimits with the existing one.
 func (l *ServiceULimits) MergeLastWin(serviceULimits *ServiceULimits) {
@@ -1021,6 +1043,19 @@ func (l *ServiceULimits) MergeLastWin(serviceULimits *ServiceULimits) {
 	default:
 		l.mergeLastWinNProc(serviceULimits.NProc)
 		l.mergeLastWinNoFile(serviceULimits.NoFile)
+	}
+}
+
+func (l *ServiceULimits) mergeFirstWinNProc(nproc uint) {
+	if l.NProc != nproc {
+		return
+	}
+	l.NProc = nproc
+}
+
+func (l *ServiceULimits) mergeFirstWinNoFile(noFile *ServiceULimitsNoFile) {
+	if !l.NoFile.Equal(noFile) {
+		l.NoFile.MergeFirstWin(noFile)
 	}
 }
 
@@ -1067,6 +1102,8 @@ func (nf *ServiceULimitsNoFile) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only the attributes of the passed ServiceULimits they are
+// undefined.
 func (nf *ServiceULimitsNoFile) MergeFirstWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
 	switch {
 	case nf == nil && serviceULimitsNoFile == nil:
@@ -1089,7 +1126,7 @@ func (nf *ServiceULimitsNoFile) MergeFirstWin(serviceULimitsNoFile *ServiceULimi
 }
 
 // MergeLastWin merges adds or overwrite the attributes of the passed
-// ServiceULimits with the existing one.
+// ServiceULimitsNoFile with the existing one.
 func (nf *ServiceULimitsNoFile) MergeLastWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
 	switch {
 	case nf == nil && serviceULimitsNoFile == nil:
@@ -1164,6 +1201,8 @@ func (v *Volume) Equal(equalable Equalable) bool {
 	}
 }
 
+// MergeFirstWin adds only the attributes of the passed Volume they are
+// undefined.
 func (v *Volume) MergeFirstWin(volume *Volume) {
 	switch {
 	case v == nil && volume == nil:
