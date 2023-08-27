@@ -381,6 +381,103 @@ type Service struct {
 	Volumes          []string                   `json:"volumes,omitempty" yaml:"volumes,omitempty"`
 }
 
+// ExistsEnvironment returns true if the passed name of environment variable is
+// already present.
+func (s *Service) ExistsEnvironment(name string) bool {
+	for _, environment := range s.Environments {
+		key, _ := splitStringInKeyValue(environment, environmentDelimiter)
+		if key == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsLabel returns true if the passed label name is already present.
+func (s *Service) ExistsLabel(name string) bool {
+	for _, label := range s.Labels {
+		key, _ := splitStringInKeyValue(label, labelDelimiter)
+		if key == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsPort returns true if the port definition is already present.
+func (s *Service) ExistsPort(src string, dest string, protocol string) bool {
+	for _, port := range s.Ports {
+		s, d, p := splitStringInPort(port)
+		if s == src && d == dest && p == protocol {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsDestinationPort returns true if the destination port is already used.
+func (s *Service) ExistsDestinationPort(dest string) bool {
+	for _, port := range s.Ports {
+		_, d, _ := splitStringInPort(port)
+		if d == dest {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsSourcePort returns true if the source port is already used.
+func (s *Service) ExistsSourcePort(src string) bool {
+	for _, port := range s.Ports {
+		s, _, _ := splitStringInPort(port)
+		if s == src {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsVolume returns true if the volume definition is already present.
+func (s *Service) ExistsVolume(src string, dest string, perm string) bool {
+	for _, volume := range s.Volumes {
+		s, d, p := splitStringInVolume(volume)
+		if s == src && d == dest && p == perm {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsDestinationVolume returns true if the volume definition is already present.
+func (s *Service) ExistsDestinationVolume(dest string) bool {
+	for _, volume := range s.Volumes {
+		_, d, _ := splitStringInVolume(volume)
+		if d == dest {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExistsSourceVolume returns true if the volume definition is already present.
+func (s *Service) ExistsSourceVolume(src string) bool {
+	for _, volume := range s.Volumes {
+		s, _, _ := splitStringInVolume(volume)
+		if s == src {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Equal returns true if the passed equalable is equal
 func (s *Service) Equal(equalable Equalable) bool {
 	service, ok := equalable.(*Service)
@@ -408,6 +505,37 @@ func (s *Service) Equal(equalable Equalable) bool {
 			equalSlice(s.Secrets, service.Secrets) &&
 			s.ULimits.Equal(service.ULimits) &&
 			equalSlice(s.Volumes, service.Volumes)
+	}
+}
+
+func (s *Service) MergeFirstWin(service *Service) {
+	switch {
+	case s == nil && service == nil:
+		fallthrough
+	case s != nil && service == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer s *Service
+	// to a new initialized service without returning the Service
+	// it self.
+	//
+	// case s == nil && service != nil:
+	// 	s = NewService()
+	// 	fallthrough
+
+	default:
+		s.mergeFirstWinCapabilitiesAdd(service.CapabilitiesAdd)
+		s.mergeFirstWinCapabilitiesDrop(service.CapabilitiesDrop)
+		s.mergeFirstWinDeploy(service.Deploy)
+		s.mergeFirstWinEnvironments(service.Environments)
+		s.mergeFirstWinExtraHosts(service.ExtraHosts)
+		s.mergeFirstWinImage(service.Image)
+		s.mergeFirstWinLabels(service.Labels)
+		s.mergeFirstWinNetworks(service.Networks)
+		s.mergeFirstWinPorts(service.Ports)
+		s.mergeFirstWinSecrets(service.Secrets)
+		s.mergeFirstWinULimits(service.ULimits)
+		s.mergeFirstWinVolumes(service.Volumes)
 	}
 }
 
@@ -441,6 +569,176 @@ func (s *Service) MergeLastWin(service *Service) {
 		s.mergeLastWinSecrets(service.Secrets)
 		s.mergeLastWinULimits(service.ULimits)
 		s.mergeLastWinVolumes(service.Volumes)
+	}
+}
+
+func (s *Service) mergeFirstWinCapabilitiesAdd(capabilitiesAdd []string) {
+	for _, capabilityAdd := range capabilitiesAdd {
+		if !existsInSlice(s.CapabilitiesAdd, capabilityAdd) && len(capabilityAdd) > 0 {
+			s.CapabilitiesAdd = append(s.CapabilitiesAdd, capabilityAdd)
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinCapabilitiesDrop(capabilitiesDrop []string) {
+	for _, capabilityDrop := range capabilitiesDrop {
+		if !existsInSlice(s.CapabilitiesAdd, capabilityDrop) && len(capabilityDrop) > 0 {
+			s.CapabilitiesDrop = append(s.CapabilitiesDrop, capabilityDrop)
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinDeploy(deploy *ServiceDeploy) {
+	switch {
+	case s.Deploy == nil && deploy != nil:
+		s.Deploy = deploy
+	case s.Deploy != nil && deploy == nil:
+		fallthrough
+	case s.Deploy == nil && deploy == nil:
+		return
+	default:
+		s.Deploy.MergeFirstWin(deploy)
+	}
+}
+
+func (s *Service) mergeFirstWinEnvironments(environments []string) {
+	switch {
+	case s.Environments == nil && environments != nil:
+		s.Environments = environments
+	case s.Environments != nil && environments == nil:
+		fallthrough
+	case s.Environments == nil && environments == nil:
+		return
+	default:
+		for _, environment := range environments {
+			if len(environment) <= 0 {
+				continue
+			}
+
+			key, value := splitStringInKeyValue(environment, environmentDelimiter)
+			if !s.ExistsEnvironment(key) {
+				s.SetEnvironment(key, value)
+			}
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinImage(image string) {
+	switch {
+	case len(s.Image) == 0 && len(image) != 0:
+		s.Image = image
+	case len(s.Image) != 0 && len(image) == 0:
+		fallthrough
+	case len(s.Image) == 0 && len(image) == 0:
+		fallthrough
+	default:
+		return
+	}
+}
+
+func (s *Service) mergeFirstWinExtraHosts(extraHosts []string) {
+	for _, extraHost := range extraHosts {
+		if !existsInSlice(s.ExtraHosts, extraHost) && len(extraHost) > 0 {
+			s.ExtraHosts = append(s.ExtraHosts, extraHost)
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinLabels(labels []string) {
+	switch {
+	case s.Labels == nil && labels != nil:
+		s.Labels = labels
+	case s.Labels != nil && labels == nil:
+		fallthrough
+	case s.Labels == nil && labels == nil:
+		return
+	default:
+		for _, label := range labels {
+			if len(label) <= 0 {
+				continue
+			}
+
+			key, value := splitStringInKeyValue(label, labelDelimiter)
+			if !s.ExistsLabel(key) {
+				s.SetLabel(key, value)
+			}
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinNetworks(networks map[string]*ServiceNetwork) {
+	switch {
+	case s.Networks == nil && networks != nil:
+		s.Networks = networks
+	case s.Networks != nil && networks == nil:
+		fallthrough
+	case s.Networks == nil && networks == nil:
+		return
+	default:
+		for name, network := range networks {
+			if _, exists := s.Networks[name]; exists {
+				s.Networks[name].MergeFirstWin(network)
+			} else {
+				s.Networks[name] = network
+			}
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinPorts(ports []string) {
+	switch {
+	case s.Ports == nil && ports != nil:
+		s.Ports = ports
+	case s.Ports != nil && ports == nil:
+		fallthrough
+	case s.Ports == nil && ports == nil:
+		return
+	default:
+		for _, port := range ports {
+			src, dest, protocol := splitStringInPort(port)
+			if !s.ExistsDestinationPort(dest) {
+				s.SetPort(src, dest, protocol)
+			}
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinSecrets(secrets []string) {
+	for _, secret := range secrets {
+		if !existsInSlice(s.Secrets, secret) && len(secret) > 0 {
+			s.Secrets = append(s.Secrets, secret)
+		}
+	}
+}
+
+func (s *Service) mergeFirstWinULimits(uLimits *ServiceULimits) {
+	switch {
+	case s.ULimits == nil && uLimits != nil:
+		s.ULimits = uLimits
+	case s.ULimits != nil && uLimits == nil:
+		fallthrough
+	case s.ULimits == nil && uLimits == nil:
+		return
+	default:
+		s.ULimits.MergeFirstWin(uLimits)
+	}
+}
+
+func (s *Service) mergeFirstWinVolumes(volumes []string) {
+	switch {
+	case s.Volumes == nil && volumes != nil:
+		s.Volumes = volumes
+	case s.Volumes != nil && volumes == nil:
+		fallthrough
+	case s.Volumes == nil && volumes == nil:
+		return
+	default:
+		for _, volume := range volumes {
+			src, dest, perm := splitStringInVolume(volume)
+			if !s.ExistsDestinationVolume(dest) {
+				s.SetVolume(src, dest, perm)
+			}
+		}
 	}
 }
 

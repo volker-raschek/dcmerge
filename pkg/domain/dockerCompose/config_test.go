@@ -464,6 +464,907 @@ func TestService_Equal(t *testing.T) {
 	}
 }
 
+func TestService_MergeFirstWin(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		serviceDeploymentA *dockerCompose.Service
+		serviceDeploymentB *dockerCompose.Service
+		expectedService    *dockerCompose.Service
+	}{
+		{
+			serviceDeploymentA: nil,
+			serviceDeploymentB: nil,
+			expectedService:    nil,
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{},
+			serviceDeploymentB: &dockerCompose.Service{},
+			expectedService:    &dockerCompose.Service{},
+		},
+
+		// CapabilitiesAdd
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesAdd: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesAdd: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesAdd: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+		},
+
+		// CapabilitiesDrop
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesDrop: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesDrop: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesDrop: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+
+		// Deploy
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Deploy: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Deploy: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Deploy: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Deploy: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Deploy: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+			expectedService: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+			expectedService: &dockerCompose.Service{
+				Deploy: dockerCompose.NewServiceDeploy(),
+			},
+		},
+
+		// Environments
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.local"},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com", "PROXY_HOST=u.example.de"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com", "PROXY_HOST=u.example.de"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=a.example.local"},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+		},
+
+		// ExtraHosts
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.com"},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.com", "extra.host.local"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+		},
+
+		// Image
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "",
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "FooBar",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Image: "",
+			},
+			expectedService: &dockerCompose.Service{
+				Image: "HelloWorld",
+			},
+		},
+
+		// Labels
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true", "prometheus.io/scrape=false"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true", "prometheus.io/scrape=false"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=false"},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+		},
+
+		// Networks
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: make(map[string]*dockerCompose.ServiceNetwork),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"db": {Aliases: []string{"app.db.network"}},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"db":    {Aliases: []string{"app.db.network"}},
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network", ""}},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"vpn.network"}},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network", "vpn.network"}},
+				},
+			},
+		},
+
+		// Ports
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{"10080:80"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{"80:80/tcp"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{"80:80/tcp"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{"10080:80/udp"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+		},
+
+		// Secrets
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: []string{"oauth2_pass_credentials"},
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials", "oauth2_pass_credentials"},
+			},
+		},
+
+		// ULimits
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: dockerCompose.NewServiceULimits(),
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 10,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 10,
+						Soft: 10,
+					},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 10,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 10,
+						Soft: 10,
+					},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 10,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 10,
+						Soft: 10,
+					},
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 10,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 10,
+						Soft: 10,
+					},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 15,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 25,
+						Soft: 20,
+					},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				ULimits: &dockerCompose.ServiceULimits{
+					NProc: 10,
+					NoFile: &dockerCompose.ServiceULimitsNoFile{
+						Hard: 10,
+						Soft: 10,
+					},
+				},
+			},
+		},
+
+		// Volumes
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: nil,
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: nil,
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: nil,
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: []string{"/usr/share/zoneinfo/Europe/Berlin:/etc/localtime"},
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+		},
+	}
+
+	for i, testCase := range testCases {
+		testCase.serviceDeploymentA.MergeFirstWin(testCase.serviceDeploymentB)
+		require.True(testCase.expectedService.Equal(testCase.serviceDeploymentA), "Failed test case %v", i)
+	}
+}
+
 func TestService_MergeLastWin(t *testing.T) {
 	require := require.New(t)
 
