@@ -92,6 +92,31 @@ func (c *Config) Merge(config *Config) {
 }
 
 // MergeLastWin merges a config and overwrite already existing properties
+func (c *Config) MergeFirstWin(config *Config) {
+	switch {
+	case c == nil && config == nil:
+		fallthrough
+	case c != nil && config == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer c *Config
+	// to a new initialized config without returning the Config
+	// it self.
+	//
+	// case c == nil && config != nil:
+	// 	c = NewConfig()
+	// 	fallthrough
+
+	default:
+		c.mergeFirstWinNetworks(config.Networks)
+		c.mergeFirstWinSecrets(config.Secrets)
+		c.mergeFirstWinServices(config.Services)
+		c.mergeFirstWinVersion(config.Version)
+		c.mergeFirstWinVolumes(config.Volumes)
+	}
+}
+
+// MergeLastWin merges a config and overwrite already existing properties
 func (c *Config) MergeLastWin(config *Config) {
 	switch {
 	case c == nil && config == nil:
@@ -113,6 +138,68 @@ func (c *Config) MergeLastWin(config *Config) {
 		c.mergeLastWinServices(config.Services)
 		c.mergeLastWinVersion(config.Version)
 		c.mergeLastWinVolumes(config.Volumes)
+	}
+}
+
+func (c *Config) mergeFirstWinVersion(version string) {
+	if len(c.Version) <= 0 {
+		c.Version = version
+	}
+}
+
+func (c *Config) mergeFirstWinNetworks(networks map[string]*Network) {
+	for networkName, network := range networks {
+		if network == nil {
+			continue
+		}
+
+		if c.ExistsNetwork(networkName) {
+			c.Networks[networkName].MergeFirstWin(network)
+		} else {
+			c.Networks[networkName] = network
+		}
+	}
+}
+
+func (c *Config) mergeFirstWinSecrets(secrets map[string]*Secret) {
+	for secretName, secret := range secrets {
+		if secret == nil {
+			continue
+		}
+
+		if c.ExistsNetwork(secretName) {
+			c.Secrets[secretName].MergeFirstWin(secret)
+		} else {
+			c.Secrets[secretName] = secret
+		}
+	}
+}
+
+func (c *Config) mergeFirstWinServices(services map[string]*Service) {
+	for serviceName, service := range services {
+		if service == nil {
+			continue
+		}
+
+		if c.ExistsService(serviceName) {
+			c.Services[serviceName].MergeFirstWin(service)
+		} else {
+			c.Services[serviceName] = service
+		}
+	}
+}
+
+func (c *Config) mergeFirstWinVolumes(volumes map[string]*Volume) {
+	for volumeName, volume := range volumes {
+		if volume == nil {
+			continue
+		}
+
+		if c.ExistsNetwork(volumeName) {
+			c.Volumes[volumeName].MergeFirstWin(volume)
+		} else {
+			c.Volumes[volumeName] = volume
+		}
 	}
 }
 
@@ -214,6 +301,26 @@ func (n *Network) Equal(equalable Equalable) bool {
 	}
 }
 
+func (n *Network) MergeFirstWin(network *Network) {
+	switch {
+	case n == nil && network == nil:
+		fallthrough
+	case n != nil && network == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer n *Network
+	// to a new initialized network without returning the Network
+	// it self.
+	//
+	// case n == nil && network != nil:
+	// 	c = NewCNetwork()
+	// 	fallthrough
+
+	default:
+		n.mergeFirstWinIPAM(network.IPAM)
+	}
+}
+
 func (n *Network) MergeLastWin(network *Network) {
 	switch {
 	case n == nil && network == nil:
@@ -231,6 +338,12 @@ func (n *Network) MergeLastWin(network *Network) {
 
 	default:
 		n.mergeLastWinIPAM(network.IPAM)
+	}
+}
+
+func (n *Network) mergeFirstWinIPAM(networkIPAM *NetworkIPAM) {
+	if !n.IPAM.Equal(networkIPAM) {
+		n.IPAM.MergeFirstWin(networkIPAM)
 	}
 }
 
@@ -270,6 +383,26 @@ func (nIPAM *NetworkIPAM) Equal(equalable Equalable) bool {
 	}
 }
 
+func (nIPAM *NetworkIPAM) MergeFirstWin(networkIPAM *NetworkIPAM) {
+	switch {
+	case nIPAM == nil && networkIPAM == nil:
+		fallthrough
+	case nIPAM != nil && networkIPAM == nil:
+		return
+
+	// WARN: It's not possible to change the memory pointer n *NetworkIPAM
+	// to a new initialized networkIPAM without returning the NetworkIPAM
+	// it self.
+	//
+	// case nIPAM == nil && networkIPAM != nil:
+	// 	c = NewNetworkIPAM()
+	// 	fallthrough
+
+	default:
+		nIPAM.mergeFirstWinConfig(networkIPAM.Configs)
+	}
+}
+
 func (nIPAM *NetworkIPAM) MergeLastWin(networkIPAM *NetworkIPAM) {
 	switch {
 	case nIPAM == nil && networkIPAM == nil:
@@ -287,6 +420,14 @@ func (nIPAM *NetworkIPAM) MergeLastWin(networkIPAM *NetworkIPAM) {
 
 	default:
 		nIPAM.mergeLastWinConfig(networkIPAM.Configs)
+	}
+}
+
+func (nIPAM *NetworkIPAM) mergeFirstWinConfig(networkIPAMConfigs []*NetworkIPAMConfig) {
+	for _, networkIPAMConfig := range networkIPAMConfigs {
+		if !existsInSlice(nIPAM.Configs, networkIPAMConfig) {
+			nIPAM.Configs = append(nIPAM.Configs, networkIPAMConfig)
+		}
 	}
 }
 
@@ -351,6 +492,14 @@ func (s *Secret) Equal(equalable Equalable) bool {
 		return false
 	default:
 		return s.File == secret.File
+	}
+}
+
+// MergeFirstWin merges adds or overwrite the attributes of the passed secret
+// with the existing one.
+func (s *Secret) MergeFirstWin(secret *Secret) {
+	if len(s.File) <= 0 {
+		s.File = secret.File
 	}
 }
 
