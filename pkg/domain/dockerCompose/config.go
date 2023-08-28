@@ -92,7 +92,7 @@ func (c *Config) Merge(config *Config) {
 }
 
 // MergeLastWin merges a config and overwrite already existing properties
-func (c *Config) MergeFirstWin(config *Config) {
+func (c *Config) MergeExistingWin(config *Config) {
 	switch {
 	case c == nil && config == nil:
 		fallthrough
@@ -108,11 +108,11 @@ func (c *Config) MergeFirstWin(config *Config) {
 	// 	fallthrough
 
 	default:
-		c.mergeFirstWinNetworks(config.Networks)
-		c.mergeFirstWinSecrets(config.Secrets)
-		c.mergeFirstWinServices(config.Services)
-		c.mergeFirstWinVersion(config.Version)
-		c.mergeFirstWinVolumes(config.Volumes)
+		c.mergeExistingWinNetworks(config.Networks)
+		c.mergeExistingWinSecrets(config.Secrets)
+		c.mergeExistingWinServices(config.Services)
+		c.mergeExistingWinVersion(config.Version)
+		c.mergeExistingWinVolumes(config.Volumes)
 	}
 }
 
@@ -141,62 +141,62 @@ func (c *Config) MergeLastWin(config *Config) {
 	}
 }
 
-func (c *Config) mergeFirstWinVersion(version string) {
+func (c *Config) mergeExistingWinVersion(version string) {
 	if len(c.Version) <= 0 {
 		c.Version = version
 	}
 }
 
-func (c *Config) mergeFirstWinNetworks(networks map[string]*Network) {
+func (c *Config) mergeExistingWinNetworks(networks map[string]*Network) {
 	for networkName, network := range networks {
 		if network == nil {
 			continue
 		}
 
 		if c.ExistsNetwork(networkName) {
-			c.Networks[networkName].MergeFirstWin(network)
+			c.Networks[networkName].MergeExistingWin(network)
 		} else {
 			c.Networks[networkName] = network
 		}
 	}
 }
 
-func (c *Config) mergeFirstWinSecrets(secrets map[string]*Secret) {
+func (c *Config) mergeExistingWinSecrets(secrets map[string]*Secret) {
 	for secretName, secret := range secrets {
 		if secret == nil {
 			continue
 		}
 
 		if c.ExistsNetwork(secretName) {
-			c.Secrets[secretName].MergeFirstWin(secret)
+			c.Secrets[secretName].MergeExistingWin(secret)
 		} else {
 			c.Secrets[secretName] = secret
 		}
 	}
 }
 
-func (c *Config) mergeFirstWinServices(services map[string]*Service) {
+func (c *Config) mergeExistingWinServices(services map[string]*Service) {
 	for serviceName, service := range services {
 		if service == nil {
 			continue
 		}
 
 		if c.ExistsService(serviceName) {
-			c.Services[serviceName].MergeFirstWin(service)
+			c.Services[serviceName].MergeExistingWin(service)
 		} else {
 			c.Services[serviceName] = service
 		}
 	}
 }
 
-func (c *Config) mergeFirstWinVolumes(volumes map[string]*Volume) {
+func (c *Config) mergeExistingWinVolumes(volumes map[string]*Volume) {
 	for volumeName, volume := range volumes {
 		if volume == nil {
 			continue
 		}
 
 		if c.ExistsNetwork(volumeName) {
-			c.Volumes[volumeName].MergeFirstWin(volume)
+			c.Volumes[volumeName].MergeExistingWin(volume)
 		} else {
 			c.Volumes[volumeName] = volume
 		}
@@ -301,7 +301,7 @@ func (n *Network) Equal(equalable Equalable) bool {
 	}
 }
 
-func (n *Network) MergeFirstWin(network *Network) {
+func (n *Network) MergeExistingWin(network *Network) {
 	switch {
 	case n == nil && network == nil:
 		fallthrough
@@ -317,7 +317,7 @@ func (n *Network) MergeFirstWin(network *Network) {
 	// 	fallthrough
 
 	default:
-		n.mergeFirstWinIPAM(network.IPAM)
+		n.mergeExistingWinIPAM(network.IPAM)
 	}
 }
 
@@ -341,9 +341,9 @@ func (n *Network) MergeLastWin(network *Network) {
 	}
 }
 
-func (n *Network) mergeFirstWinIPAM(networkIPAM *NetworkIPAM) {
+func (n *Network) mergeExistingWinIPAM(networkIPAM *NetworkIPAM) {
 	if !n.IPAM.Equal(networkIPAM) {
-		n.IPAM.MergeFirstWin(networkIPAM)
+		n.IPAM.MergeExistingWin(networkIPAM)
 	}
 }
 
@@ -383,7 +383,7 @@ func (nIPAM *NetworkIPAM) Equal(equalable Equalable) bool {
 	}
 }
 
-func (nIPAM *NetworkIPAM) MergeFirstWin(networkIPAM *NetworkIPAM) {
+func (nIPAM *NetworkIPAM) MergeExistingWin(networkIPAM *NetworkIPAM) {
 	switch {
 	case nIPAM == nil && networkIPAM == nil:
 		fallthrough
@@ -399,7 +399,7 @@ func (nIPAM *NetworkIPAM) MergeFirstWin(networkIPAM *NetworkIPAM) {
 	// 	fallthrough
 
 	default:
-		nIPAM.mergeFirstWinConfig(networkIPAM.Configs)
+		nIPAM.mergeExistingWinConfig(networkIPAM.Configs)
 	}
 }
 
@@ -423,7 +423,7 @@ func (nIPAM *NetworkIPAM) MergeLastWin(networkIPAM *NetworkIPAM) {
 	}
 }
 
-func (nIPAM *NetworkIPAM) mergeFirstWinConfig(networkIPAMConfigs []*NetworkIPAMConfig) {
+func (nIPAM *NetworkIPAM) mergeExistingWinConfig(networkIPAMConfigs []*NetworkIPAMConfig) {
 	for _, networkIPAMConfig := range networkIPAMConfigs {
 		if !existsInSlice(nIPAM.Configs, networkIPAMConfig) {
 			nIPAM.Configs = append(nIPAM.Configs, networkIPAMConfig)
@@ -495,9 +495,9 @@ func (s *Secret) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin merges adds or overwrite the attributes of the passed secret
+// MergeExistingWin merges adds or overwrite the attributes of the passed secret
 // with the existing one.
-func (s *Secret) MergeFirstWin(secret *Secret) {
+func (s *Secret) MergeExistingWin(secret *Secret) {
 	if len(s.File) <= 0 {
 		s.File = secret.File
 	}
@@ -657,7 +657,7 @@ func (s *Service) Equal(equalable Equalable) bool {
 	}
 }
 
-func (s *Service) MergeFirstWin(service *Service) {
+func (s *Service) MergeExistingWin(service *Service) {
 	switch {
 	case s == nil && service == nil:
 		fallthrough
@@ -673,18 +673,18 @@ func (s *Service) MergeFirstWin(service *Service) {
 	// 	fallthrough
 
 	default:
-		s.mergeFirstWinCapabilitiesAdd(service.CapabilitiesAdd)
-		s.mergeFirstWinCapabilitiesDrop(service.CapabilitiesDrop)
-		s.mergeFirstWinDeploy(service.Deploy)
-		s.mergeFirstWinEnvironments(service.Environments)
-		s.mergeFirstWinExtraHosts(service.ExtraHosts)
-		s.mergeFirstWinImage(service.Image)
-		s.mergeFirstWinLabels(service.Labels)
-		s.mergeFirstWinNetworks(service.Networks)
-		s.mergeFirstWinPorts(service.Ports)
-		s.mergeFirstWinSecrets(service.Secrets)
-		s.mergeFirstWinULimits(service.ULimits)
-		s.mergeFirstWinVolumes(service.Volumes)
+		s.mergeExistingWinCapabilitiesAdd(service.CapabilitiesAdd)
+		s.mergeExistingWinCapabilitiesDrop(service.CapabilitiesDrop)
+		s.mergeExistingWinDeploy(service.Deploy)
+		s.mergeExistingWinEnvironments(service.Environments)
+		s.mergeExistingWinExtraHosts(service.ExtraHosts)
+		s.mergeExistingWinImage(service.Image)
+		s.mergeExistingWinLabels(service.Labels)
+		s.mergeExistingWinNetworks(service.Networks)
+		s.mergeExistingWinPorts(service.Ports)
+		s.mergeExistingWinSecrets(service.Secrets)
+		s.mergeExistingWinULimits(service.ULimits)
+		s.mergeExistingWinVolumes(service.Volumes)
 	}
 }
 
@@ -721,7 +721,7 @@ func (s *Service) MergeLastWin(service *Service) {
 	}
 }
 
-func (s *Service) mergeFirstWinCapabilitiesAdd(capabilitiesAdd []string) {
+func (s *Service) mergeExistingWinCapabilitiesAdd(capabilitiesAdd []string) {
 	for _, capabilityAdd := range capabilitiesAdd {
 		if !existsInSlice(s.CapabilitiesAdd, capabilityAdd) && len(capabilityAdd) > 0 {
 			s.CapabilitiesAdd = append(s.CapabilitiesAdd, capabilityAdd)
@@ -729,7 +729,7 @@ func (s *Service) mergeFirstWinCapabilitiesAdd(capabilitiesAdd []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinCapabilitiesDrop(capabilitiesDrop []string) {
+func (s *Service) mergeExistingWinCapabilitiesDrop(capabilitiesDrop []string) {
 	for _, capabilityDrop := range capabilitiesDrop {
 		if !existsInSlice(s.CapabilitiesAdd, capabilityDrop) && len(capabilityDrop) > 0 {
 			s.CapabilitiesDrop = append(s.CapabilitiesDrop, capabilityDrop)
@@ -737,7 +737,7 @@ func (s *Service) mergeFirstWinCapabilitiesDrop(capabilitiesDrop []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinDeploy(deploy *ServiceDeploy) {
+func (s *Service) mergeExistingWinDeploy(deploy *ServiceDeploy) {
 	switch {
 	case s.Deploy == nil && deploy != nil:
 		s.Deploy = deploy
@@ -746,11 +746,11 @@ func (s *Service) mergeFirstWinDeploy(deploy *ServiceDeploy) {
 	case s.Deploy == nil && deploy == nil:
 		return
 	default:
-		s.Deploy.MergeFirstWin(deploy)
+		s.Deploy.MergeExistingWin(deploy)
 	}
 }
 
-func (s *Service) mergeFirstWinEnvironments(environments []string) {
+func (s *Service) mergeExistingWinEnvironments(environments []string) {
 	switch {
 	case s.Environments == nil && environments != nil:
 		s.Environments = environments
@@ -772,7 +772,7 @@ func (s *Service) mergeFirstWinEnvironments(environments []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinImage(image string) {
+func (s *Service) mergeExistingWinImage(image string) {
 	switch {
 	case len(s.Image) == 0 && len(image) != 0:
 		s.Image = image
@@ -785,7 +785,7 @@ func (s *Service) mergeFirstWinImage(image string) {
 	}
 }
 
-func (s *Service) mergeFirstWinExtraHosts(extraHosts []string) {
+func (s *Service) mergeExistingWinExtraHosts(extraHosts []string) {
 	for _, extraHost := range extraHosts {
 		if !existsInSlice(s.ExtraHosts, extraHost) && len(extraHost) > 0 {
 			s.ExtraHosts = append(s.ExtraHosts, extraHost)
@@ -793,7 +793,7 @@ func (s *Service) mergeFirstWinExtraHosts(extraHosts []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinLabels(labels []string) {
+func (s *Service) mergeExistingWinLabels(labels []string) {
 	switch {
 	case s.Labels == nil && labels != nil:
 		s.Labels = labels
@@ -815,7 +815,7 @@ func (s *Service) mergeFirstWinLabels(labels []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinNetworks(networks map[string]*ServiceNetwork) {
+func (s *Service) mergeExistingWinNetworks(networks map[string]*ServiceNetwork) {
 	switch {
 	case s.Networks == nil && networks != nil:
 		s.Networks = networks
@@ -826,7 +826,7 @@ func (s *Service) mergeFirstWinNetworks(networks map[string]*ServiceNetwork) {
 	default:
 		for name, network := range networks {
 			if _, exists := s.Networks[name]; exists {
-				s.Networks[name].MergeFirstWin(network)
+				s.Networks[name].MergeExistingWin(network)
 			} else {
 				s.Networks[name] = network
 			}
@@ -834,7 +834,7 @@ func (s *Service) mergeFirstWinNetworks(networks map[string]*ServiceNetwork) {
 	}
 }
 
-func (s *Service) mergeFirstWinPorts(ports []string) {
+func (s *Service) mergeExistingWinPorts(ports []string) {
 	switch {
 	case s.Ports == nil && ports != nil:
 		s.Ports = ports
@@ -852,7 +852,7 @@ func (s *Service) mergeFirstWinPorts(ports []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinSecrets(secrets []string) {
+func (s *Service) mergeExistingWinSecrets(secrets []string) {
 	for _, secret := range secrets {
 		if !existsInSlice(s.Secrets, secret) && len(secret) > 0 {
 			s.Secrets = append(s.Secrets, secret)
@@ -860,7 +860,7 @@ func (s *Service) mergeFirstWinSecrets(secrets []string) {
 	}
 }
 
-func (s *Service) mergeFirstWinULimits(uLimits *ServiceULimits) {
+func (s *Service) mergeExistingWinULimits(uLimits *ServiceULimits) {
 	switch {
 	case s.ULimits == nil && uLimits != nil:
 		s.ULimits = uLimits
@@ -869,11 +869,11 @@ func (s *Service) mergeFirstWinULimits(uLimits *ServiceULimits) {
 	case s.ULimits == nil && uLimits == nil:
 		return
 	default:
-		s.ULimits.MergeFirstWin(uLimits)
+		s.ULimits.MergeExistingWin(uLimits)
 	}
 }
 
-func (s *Service) mergeFirstWinVolumes(volumes []string) {
+func (s *Service) mergeExistingWinVolumes(volumes []string) {
 	switch {
 	case s.Volumes == nil && volumes != nil:
 		s.Volumes = volumes
@@ -1179,9 +1179,9 @@ func (sd *ServiceDeploy) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin merges adds or overwrite the attributes of the passed
+// MergeExistingWin merges adds or overwrite the attributes of the passed
 // serviceDeploy with the existing one.
-func (sd *ServiceDeploy) MergeFirstWin(serviceDeploy *ServiceDeploy) {
+func (sd *ServiceDeploy) MergeExistingWin(serviceDeploy *ServiceDeploy) {
 	switch {
 	case sd == nil && serviceDeploy == nil:
 		fallthrough
@@ -1197,7 +1197,7 @@ func (sd *ServiceDeploy) MergeFirstWin(serviceDeploy *ServiceDeploy) {
 	// 	fallthrough
 
 	default:
-		sd.mergeFirstWinDeployResources(serviceDeploy.Resources)
+		sd.mergeExistingWinDeployResources(serviceDeploy.Resources)
 	}
 }
 
@@ -1223,7 +1223,7 @@ func (sd *ServiceDeploy) MergeLastWin(serviceDeploy *ServiceDeploy) {
 	}
 }
 
-func (sd *ServiceDeploy) mergeFirstWinDeployResources(resources *ServiceDeployResources) {
+func (sd *ServiceDeploy) mergeExistingWinDeployResources(resources *ServiceDeployResources) {
 	switch {
 	case sd.Resources == nil && resources != nil:
 		sd.Resources = resources
@@ -1232,7 +1232,7 @@ func (sd *ServiceDeploy) mergeFirstWinDeployResources(resources *ServiceDeployRe
 	case sd.Resources == nil && resources == nil:
 		return
 	default:
-		sd.Resources.MergeFirstWin(resources)
+		sd.Resources.MergeExistingWin(resources)
 	}
 }
 
@@ -1280,9 +1280,9 @@ func (sdr *ServiceDeployResources) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only attributes of the passed serviceDeployResources if
+// MergeExistingWin adds only attributes of the passed serviceDeployResources if
 // they are not already exists.
-func (sdr *ServiceDeployResources) MergeFirstWin(serviceDeployResources *ServiceDeployResources) {
+func (sdr *ServiceDeployResources) MergeExistingWin(serviceDeployResources *ServiceDeployResources) {
 	switch {
 	case sdr == nil && serviceDeployResources == nil:
 		fallthrough
@@ -1296,8 +1296,8 @@ func (sdr *ServiceDeployResources) MergeFirstWin(serviceDeployResources *Service
 		sdr = NewServiceDeployResources()
 		fallthrough
 	default:
-		sdr.mergeFirstWinLimits(serviceDeployResources.Limits)
-		sdr.mergeFirstWinReservations(serviceDeployResources.Reservations)
+		sdr.mergeExistingWinLimits(serviceDeployResources.Limits)
+		sdr.mergeExistingWinReservations(serviceDeployResources.Reservations)
 	}
 }
 
@@ -1322,7 +1322,7 @@ func (sdr *ServiceDeployResources) MergeLastWin(serviceDeployResources *ServiceD
 	}
 }
 
-func (sdr *ServiceDeployResources) mergeFirstWinLimits(limits *ServiceDeployResourcesLimits) {
+func (sdr *ServiceDeployResources) mergeExistingWinLimits(limits *ServiceDeployResourcesLimits) {
 	switch {
 	case sdr.Limits == nil && limits != nil:
 		sdr.Limits = limits
@@ -1331,11 +1331,11 @@ func (sdr *ServiceDeployResources) mergeFirstWinLimits(limits *ServiceDeployReso
 	case sdr.Limits == nil && limits == nil:
 		return
 	default:
-		sdr.Limits.MergeFirstWin(limits)
+		sdr.Limits.MergeExistingWin(limits)
 	}
 }
 
-func (sdr *ServiceDeployResources) mergeFirstWinReservations(reservations *ServiceDeployResourcesLimits) {
+func (sdr *ServiceDeployResources) mergeExistingWinReservations(reservations *ServiceDeployResourcesLimits) {
 	switch {
 	case sdr.Reservations == nil && reservations != nil:
 		sdr.Reservations = reservations
@@ -1344,7 +1344,7 @@ func (sdr *ServiceDeployResources) mergeFirstWinReservations(reservations *Servi
 	case sdr.Reservations == nil && reservations == nil:
 		return
 	default:
-		sdr.Reservations.MergeFirstWin(reservations)
+		sdr.Reservations.MergeExistingWin(reservations)
 	}
 }
 
@@ -1406,9 +1406,9 @@ func (sdrl *ServiceDeployResourcesLimits) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only attributes of the passed serviceDeployResourcesLimits
+// MergeExistingWin adds only attributes of the passed serviceDeployResourcesLimits
 // if they are not already exists.
-func (sdrl *ServiceDeployResourcesLimits) MergeFirstWin(serviceDeployResourcesLimits *ServiceDeployResourcesLimits) {
+func (sdrl *ServiceDeployResourcesLimits) MergeExistingWin(serviceDeployResourcesLimits *ServiceDeployResourcesLimits) {
 	switch {
 	case sdrl == nil && serviceDeployResourcesLimits == nil:
 		fallthrough
@@ -1424,8 +1424,8 @@ func (sdrl *ServiceDeployResourcesLimits) MergeFirstWin(serviceDeployResourcesLi
 	// 	fallthrough
 
 	default:
-		sdrl.mergeFirstWinCPUs(serviceDeployResourcesLimits.CPUs)
-		sdrl.mergeFirstWinMemory(serviceDeployResourcesLimits.Memory)
+		sdrl.mergeExistingWinCPUs(serviceDeployResourcesLimits.CPUs)
+		sdrl.mergeExistingWinMemory(serviceDeployResourcesLimits.Memory)
 	}
 }
 
@@ -1452,13 +1452,13 @@ func (sdrl *ServiceDeployResourcesLimits) MergeLastWin(serviceDeployResourcesLim
 	}
 }
 
-func (sdrl *ServiceDeployResourcesLimits) mergeFirstWinCPUs(cpus string) {
+func (sdrl *ServiceDeployResourcesLimits) mergeExistingWinCPUs(cpus string) {
 	if len(sdrl.CPUs) <= 0 {
 		sdrl.CPUs = cpus
 	}
 }
 
-func (sdrl *ServiceDeployResourcesLimits) mergeFirstWinMemory(memory string) {
+func (sdrl *ServiceDeployResourcesLimits) mergeExistingWinMemory(memory string) {
 	if len(sdrl.Memory) <= 0 {
 		sdrl.Memory = memory
 	}
@@ -1503,9 +1503,9 @@ func (sn *ServiceNetwork) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only attributes of the passed
+// MergeExistingWin adds only attributes of the passed
 // serviceNetwork if they are undefined.
-func (sn *ServiceNetwork) MergeFirstWin(serviceNetwork *ServiceNetwork) {
+func (sn *ServiceNetwork) MergeExistingWin(serviceNetwork *ServiceNetwork) {
 	switch {
 	case sn == nil && serviceNetwork == nil:
 		fallthrough
@@ -1523,7 +1523,7 @@ func (sn *ServiceNetwork) MergeFirstWin(serviceNetwork *ServiceNetwork) {
 		sn = NewServiceNetwork()
 		fallthrough
 	default:
-		sn.mergeFirstWinAliases(serviceNetwork.Aliases)
+		sn.mergeExistingWinAliases(serviceNetwork.Aliases)
 	}
 }
 
@@ -1551,7 +1551,7 @@ func (sn *ServiceNetwork) MergeLastWin(serviceNetwork *ServiceNetwork) {
 	}
 }
 
-func (sn *ServiceNetwork) mergeFirstWinAliases(aliases []string) {
+func (sn *ServiceNetwork) mergeExistingWinAliases(aliases []string) {
 	for _, alias := range aliases {
 		if !existsInSlice(sn.Aliases, alias) && len(alias) > 0 {
 			sn.Aliases = append(sn.Aliases, alias)
@@ -1598,9 +1598,9 @@ func (l *ServiceULimits) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only the attributes of the passed ServiceULimits they are
+// MergeExistingWin adds only the attributes of the passed ServiceULimits they are
 // undefined.
-func (l *ServiceULimits) MergeFirstWin(serviceULimits *ServiceULimits) {
+func (l *ServiceULimits) MergeExistingWin(serviceULimits *ServiceULimits) {
 	switch {
 	case l == nil && serviceULimits == nil:
 		fallthrough
@@ -1615,8 +1615,8 @@ func (l *ServiceULimits) MergeFirstWin(serviceULimits *ServiceULimits) {
 	// 	fallthrough
 
 	default:
-		l.mergeFirstWinNProc(serviceULimits.NProc)
-		l.mergeFirstWinNoFile(serviceULimits.NoFile)
+		l.mergeExistingWinNProc(serviceULimits.NProc)
+		l.mergeExistingWinNoFile(serviceULimits.NoFile)
 	}
 }
 
@@ -1642,16 +1642,16 @@ func (l *ServiceULimits) MergeLastWin(serviceULimits *ServiceULimits) {
 	}
 }
 
-func (l *ServiceULimits) mergeFirstWinNProc(nproc uint) {
+func (l *ServiceULimits) mergeExistingWinNProc(nproc uint) {
 	if l.NProc != nproc {
 		return
 	}
 	l.NProc = nproc
 }
 
-func (l *ServiceULimits) mergeFirstWinNoFile(noFile *ServiceULimitsNoFile) {
+func (l *ServiceULimits) mergeExistingWinNoFile(noFile *ServiceULimitsNoFile) {
 	if !l.NoFile.Equal(noFile) {
-		l.NoFile.MergeFirstWin(noFile)
+		l.NoFile.MergeExistingWin(noFile)
 	}
 }
 
@@ -1698,9 +1698,9 @@ func (nf *ServiceULimitsNoFile) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only the attributes of the passed ServiceULimits they are
+// MergeExistingWin adds only the attributes of the passed ServiceULimits they are
 // undefined.
-func (nf *ServiceULimitsNoFile) MergeFirstWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
+func (nf *ServiceULimitsNoFile) MergeExistingWin(serviceULimitsNoFile *ServiceULimitsNoFile) {
 	switch {
 	case nf == nil && serviceULimitsNoFile == nil:
 		fallthrough
@@ -1716,8 +1716,8 @@ func (nf *ServiceULimitsNoFile) MergeFirstWin(serviceULimitsNoFile *ServiceULimi
 	// 	fallthrough
 
 	default:
-		nf.mergeFirstWinHard(serviceULimitsNoFile.Hard)
-		nf.mergeFirstWinSoft(serviceULimitsNoFile.Soft)
+		nf.mergeExistingWinHard(serviceULimitsNoFile.Hard)
+		nf.mergeExistingWinSoft(serviceULimitsNoFile.Soft)
 	}
 }
 
@@ -1744,14 +1744,14 @@ func (nf *ServiceULimitsNoFile) MergeLastWin(serviceULimitsNoFile *ServiceULimit
 	}
 }
 
-func (nf *ServiceULimitsNoFile) mergeFirstWinHard(hard uint) {
+func (nf *ServiceULimitsNoFile) mergeExistingWinHard(hard uint) {
 	if nf.Hard != hard {
 		return
 	}
 	nf.Hard = hard
 }
 
-func (nf *ServiceULimitsNoFile) mergeFirstWinSoft(soft uint) {
+func (nf *ServiceULimitsNoFile) mergeExistingWinSoft(soft uint) {
 	if nf.Soft != soft {
 		return
 	}
@@ -1797,9 +1797,9 @@ func (v *Volume) Equal(equalable Equalable) bool {
 	}
 }
 
-// MergeFirstWin adds only the attributes of the passed Volume they are
+// MergeExistingWin adds only the attributes of the passed Volume they are
 // undefined.
-func (v *Volume) MergeFirstWin(volume *Volume) {
+func (v *Volume) MergeExistingWin(volume *Volume) {
 	switch {
 	case v == nil && volume == nil:
 		fallthrough
@@ -1814,7 +1814,7 @@ func (v *Volume) MergeFirstWin(volume *Volume) {
 	// 	fallthrough
 
 	default:
-		v.mergeFirstWinExternal(volume.External)
+		v.mergeExistingWinExternal(volume.External)
 	}
 }
 
@@ -1837,7 +1837,7 @@ func (v *Volume) MergeLastWin(volume *Volume) {
 	}
 }
 
-func (v *Volume) mergeFirstWinExternal(external bool) {
+func (v *Volume) mergeExistingWinExternal(external bool) {
 	if v.External {
 		return
 	}

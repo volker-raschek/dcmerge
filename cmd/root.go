@@ -42,7 +42,7 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 		RunE:    run,
 		Version: version,
 	}
-	rootCmd.Flags().BoolP("first-win", "f", false, "Add only missing attributes")
+	rootCmd.Flags().BoolP("existing-win", "f", false, "Protect existing attributes")
 	rootCmd.Flags().BoolP("last-win", "l", false, "Overwrite existing attributes")
 	rootCmd.Flags().StringP("output-file", "o", "", "Write instead on stdout into a file")
 	rootCmd.AddCommand(completionCmd)
@@ -51,7 +51,7 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	mergeFirstWin, err := cmd.Flags().GetBool("first-win")
+	mergeExisting, err := cmd.Flags().GetBool("existing-win")
 	if err != nil {
 		return fmt.Errorf("Failed to parse flag last-win: %s", err)
 	}
@@ -75,11 +75,11 @@ func run(cmd *cobra.Command, args []string) error {
 
 	for _, config := range dockerComposeConfigs {
 		switch {
-		case mergeFirstWin && mergeLastWin:
+		case mergeExisting && mergeLastWin:
 			return fmt.Errorf("Neither --first-win or --last-win can be specified - not booth.")
-		case mergeFirstWin && !mergeLastWin:
-			dockerComposeConfig.MergeFirstWin(config)
-		case !mergeFirstWin && mergeLastWin:
+		case mergeExisting && !mergeLastWin:
+			dockerComposeConfig.MergeExistingWin(config)
+		case !mergeExisting && mergeLastWin:
 			dockerComposeConfig.MergeLastWin(config)
 		default:
 			dockerComposeConfig.Merge(config)

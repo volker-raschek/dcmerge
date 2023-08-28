@@ -464,7 +464,7 @@ func TestService_Equal(t *testing.T) {
 	}
 }
 
-func TestService_MergeFirstWin(t *testing.T) {
+func TestService_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -1360,7 +1360,7 @@ func TestService_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.serviceDeploymentA.MergeFirstWin(testCase.serviceDeploymentB)
+		testCase.serviceDeploymentA.MergeExistingWin(testCase.serviceDeploymentB)
 		require.True(testCase.expectedService.Equal(testCase.serviceDeploymentA), "Failed test case %v", i)
 	}
 }
@@ -2196,7 +2196,7 @@ func TestSecretDeploy_Equal(t *testing.T) {
 	}
 }
 
-func TestServiceDeploy_MergeFirstWin(t *testing.T) {
+func TestServiceDeploy_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -2377,7 +2377,7 @@ func TestSecretDeployResources_Equal(t *testing.T) {
 	}
 }
 
-func TestServiceDeployResources_MergeFirstWin(t *testing.T) {
+func TestServiceDeployResources_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -2521,7 +2521,7 @@ func TestServiceDeployResources_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.serviceDeploymentResourcesA.MergeFirstWin(testCase.serviceDeploymentResourcesB)
+		testCase.serviceDeploymentResourcesA.MergeExistingWin(testCase.serviceDeploymentResourcesB)
 		require.True(testCase.expectedServiceDeploymentResources.Equal(testCase.serviceDeploymentResourcesA), "Failed test case %v", i)
 	}
 }
@@ -2715,7 +2715,7 @@ func TestServiceDeployResourcesLimits_Equal(t *testing.T) {
 	}
 }
 
-func TestServiceDeployResourcesLimits_MergeFirstWin(t *testing.T) {
+func TestServiceDeployResourcesLimits_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -2803,7 +2803,7 @@ func TestServiceDeployResourcesLimits_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.serviceDeploymentResourcesLimitsA.MergeFirstWin(testCase.serviceDeploymentResourcesLimitsB)
+		testCase.serviceDeploymentResourcesLimitsA.MergeExistingWin(testCase.serviceDeploymentResourcesLimitsB)
 		require.True(testCase.expectedServiceDeploymentResourcesLimits.Equal(testCase.serviceDeploymentResourcesLimitsA), "Failed test case %v", i)
 	}
 }
@@ -2941,7 +2941,7 @@ func TestServiceNetwork_Equal(t *testing.T) {
 	}
 }
 
-func TestServiceNetwork_MergeFirstWin(t *testing.T) {
+func TestServiceNetwork_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -2995,7 +2995,7 @@ func TestServiceNetwork_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.ServiceNetworkA.MergeFirstWin(testCase.ServiceNetworkB)
+		testCase.ServiceNetworkA.MergeExistingWin(testCase.ServiceNetworkB)
 		require.True(testCase.expectedServiceNetwork.Equal(testCase.ServiceNetworkA), "Failed test case %v", i)
 	}
 }
@@ -3163,7 +3163,7 @@ func TestServiceULimits_MergeLastWin(t *testing.T) {
 	}
 }
 
-func TestServiceULimits_MergeFirstWin(t *testing.T) {
+func TestServiceULimits_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -3206,7 +3206,7 @@ func TestServiceULimits_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.ServiceULimitsA.MergeFirstWin(testCase.ServiceULimitsB)
+		testCase.ServiceULimitsA.MergeExistingWin(testCase.ServiceULimitsB)
 		require.True(testCase.expectedServiceULimits.Equal(testCase.ServiceULimitsA), "Failed test case %v", i)
 	}
 }
@@ -3261,7 +3261,7 @@ func TestServiceULimitsNoFile_Equal(t *testing.T) {
 	}
 }
 
-func TestServiceULimitsNoFile_MergeFirstWin(t *testing.T) {
+func TestServiceULimitsNoFile_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -3338,7 +3338,7 @@ func TestServiceULimitsNoFile_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.ServiceULimitsNoFileA.MergeFirstWin(testCase.ServiceULimitsNoFileB)
+		testCase.ServiceULimitsNoFileA.MergeExistingWin(testCase.ServiceULimitsNoFileB)
 		require.True(testCase.expectedServiceULimitsNoFile.Equal(testCase.ServiceULimitsNoFileA), "Failed test case %v", i)
 	}
 }
@@ -3473,7 +3473,7 @@ func TestVolume_Equal(t *testing.T) {
 	}
 }
 
-func TestVolume_MergeFirstWin(t *testing.T) {
+func TestVolume_MergeExistingWin(t *testing.T) {
 	require := require.New(t)
 
 	testCases := []struct {
@@ -3527,7 +3527,7 @@ func TestVolume_MergeFirstWin(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		testCase.volumeA.MergeFirstWin(testCase.volumeB)
+		testCase.volumeA.MergeExistingWin(testCase.volumeB)
 		require.True(testCase.expectedVolume.Equal(testCase.volumeA), "Failed test case %v", i)
 	}
 }
