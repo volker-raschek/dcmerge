@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  app:
+    environment:
+    - HTTP_PROXY=4.3.2.1:8080
+    image: repository:version
+    ports:
+    - 10080:80
+    volumes:
+    - /usr/share/zoneinfo/UTC:/etc/localtime
