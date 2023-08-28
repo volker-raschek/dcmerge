@@ -1418,6 +1418,17 @@ func TestService_MergeLastWin(t *testing.T) {
 				CapabilitiesAdd: []string{"NET_RAW"},
 			},
 		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesAdd: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesAdd: []string{"NET_RAW"},
+			},
+		},
 
 		// CapabilitiesDrop
 		{
@@ -1448,6 +1459,17 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 			serviceDeploymentB: &dockerCompose.Service{
 				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			expectedService: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				CapabilitiesDrop: []string{""},
 			},
 			expectedService: &dockerCompose.Service{
 				CapabilitiesDrop: []string{"NET_RAW"},
@@ -1567,6 +1589,17 @@ func TestService_MergeLastWin(t *testing.T) {
 				Environments: []string{"PROXY_HOST=u.example.local"},
 			},
 		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Environments: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Environments: []string{"PROXY_HOST=u.example.com"},
+			},
+		},
 
 		// ExtraHosts
 		{
@@ -1633,6 +1666,17 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 			expectedService: &dockerCompose.Service{
 				ExtraHosts: []string{"extra.host.com", "extra.host.local"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				ExtraHosts: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				ExtraHosts: []string{"extra.host.local"},
 			},
 		},
 
@@ -1738,6 +1782,17 @@ func TestService_MergeLastWin(t *testing.T) {
 				Labels: []string{"prometheus.io/scrape=true"},
 			},
 		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Labels: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Labels: []string{"prometheus.io/scrape=true"},
+			},
+		},
 
 		// Networks
 		{
@@ -1813,6 +1868,23 @@ func TestService_MergeLastWin(t *testing.T) {
 			expectedService: &dockerCompose.Service{
 				Networks: map[string]*dockerCompose.ServiceNetwork{
 					"db":    {Aliases: []string{"app.db.network"}},
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{"app.proxy.network"}},
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
+					"proxy": {Aliases: []string{""}},
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Networks: map[string]*dockerCompose.ServiceNetwork{
 					"proxy": {Aliases: []string{"app.proxy.network"}},
 				},
 			},
@@ -1907,6 +1979,17 @@ func TestService_MergeLastWin(t *testing.T) {
 				Ports: []string{"10080:80/udp"},
 			},
 		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{"80:80"},
+			},
+		},
 
 		// Secrets
 		{
@@ -1973,6 +2056,17 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 			expectedService: &dockerCompose.Service{
 				Secrets: []string{"db_pass_credentials", "oauth2_pass_credentials"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Secrets: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Secrets: []string{"db_pass_credentials"},
 			},
 		},
 
@@ -2145,6 +2239,17 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 			expectedService: &dockerCompose.Service{
 				Volumes: []string{"/usr/share/zoneinfo/Europe/Berlin:/etc/localtime"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Volumes: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Volumes: []string{"/etc/localtime:/etc/localtime"},
 			},
 		},
 	}

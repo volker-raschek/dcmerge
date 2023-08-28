@@ -844,6 +844,10 @@ func (s *Service) mergeExistingWinPorts(ports []string) {
 		return
 	default:
 		for _, port := range ports {
+			if len(port) <= 0 {
+				continue
+			}
+
 			src, dest, protocol := splitStringInPort(port)
 			if !s.ExistsDestinationPort(dest) {
 				s.SetPort(src, dest, protocol)
@@ -893,6 +897,10 @@ func (s *Service) mergeExistingWinVolumes(volumes []string) {
 
 func (s *Service) mergeLastWinCapabilitiesAdd(capabilitiesAdd []string) {
 	for _, capabilityAdd := range capabilitiesAdd {
+		if len(capabilityAdd) <= 0 {
+			continue
+		}
+
 		if !existsInSlice(s.CapabilitiesAdd, capabilityAdd) {
 			s.CapabilitiesAdd = append(s.CapabilitiesAdd, capabilityAdd)
 		}
@@ -901,6 +909,10 @@ func (s *Service) mergeLastWinCapabilitiesAdd(capabilitiesAdd []string) {
 
 func (s *Service) mergeLastWinCapabilitiesDrop(capabilitiesDrop []string) {
 	for _, capabilityDrop := range capabilitiesDrop {
+		if len(capabilityDrop) <= 0 {
+			continue
+		}
+
 		if !existsInSlice(s.CapabilitiesAdd, capabilityDrop) {
 			s.CapabilitiesDrop = append(s.CapabilitiesDrop, capabilityDrop)
 		}
@@ -930,6 +942,10 @@ func (s *Service) mergeLastWinEnvironments(environments []string) {
 		return
 	default:
 		for _, environment := range environments {
+			if len(environment) <= 0 {
+				continue
+			}
+
 			key, value := splitStringInKeyValue(environment, environmentDelimiter)
 			s.SetEnvironment(key, value)
 		}
@@ -953,6 +969,10 @@ func (s *Service) mergeLastWinImage(image string) {
 
 func (s *Service) mergeLastWinExtraHosts(extraHosts []string) {
 	for _, extraHost := range extraHosts {
+		if len(extraHost) <= 0 {
+			continue
+		}
+
 		if !existsInSlice(s.ExtraHosts, extraHost) {
 			s.ExtraHosts = append(s.ExtraHosts, extraHost)
 		}
@@ -969,6 +989,10 @@ func (s *Service) mergeLastWinLabels(labels []string) {
 		return
 	default:
 		for _, label := range labels {
+			if len(label) <= 0 {
+				continue
+			}
+
 			key, value := splitStringInKeyValue(label, labelDelimiter)
 			s.SetLabel(key, value)
 		}
@@ -1004,6 +1028,10 @@ func (s *Service) mergeLastWinPorts(ports []string) {
 		return
 	default:
 		for _, port := range ports {
+			if len(port) <= 0 {
+				continue
+			}
+
 			src, dest, protocol := splitStringInPort(port)
 			s.SetPort(src, dest, protocol)
 		}
@@ -1012,6 +1040,10 @@ func (s *Service) mergeLastWinPorts(ports []string) {
 
 func (s *Service) mergeLastWinSecrets(secrets []string) {
 	for _, secret := range secrets {
+		if len(secret) <= 0 {
+			continue
+		}
+
 		if !existsInSlice(s.Secrets, secret) {
 			s.Secrets = append(s.Secrets, secret)
 		}
@@ -1041,6 +1073,10 @@ func (s *Service) mergeLastWinVolumes(volumes []string) {
 		return
 	default:
 		for _, volume := range volumes {
+			if len(volume) <= 0 {
+				continue
+			}
+
 			src, dest, perm := splitStringInVolume(volume)
 			s.SetVolume(src, dest, perm)
 		}
