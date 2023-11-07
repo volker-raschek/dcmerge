@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.21.3-alpine3.18 AS build
+FROM docker.io/library/golang:1.21.4-alpine3.18 AS build
 
 RUN apk add git make
 
