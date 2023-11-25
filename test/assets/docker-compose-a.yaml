@@ -1,6 +1,8 @@
 version: "3.3"
 services:
   app:
+    depends_on:
+    - oracle
     environment:
     - HTTP_PROXY=1.2.3.4:8080
     image: repository:version
