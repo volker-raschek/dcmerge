@@ -66,25 +66,25 @@ func (c *Config) ExistsVolume(name string) bool {
 
 // Merge adds only a missing network, secret, service and volume.
 func (c *Config) Merge(config *Config) {
-	for name, network := range c.Networks {
+	for name, network := range config.Networks {
 		if !c.ExistsNetwork(name) {
 			c.Networks[name] = network
 		}
 	}
 
-	for name, secret := range c.Secrets {
+	for name, secret := range config.Secrets {
 		if !c.ExistsSecret(name) {
 			c.Secrets[name] = secret
 		}
 	}
 
-	for name, service := range c.Services {
+	for name, service := range config.Services {
 		if !c.ExistsService(name) {
 			c.Services[name] = service
 		}
 	}
 
-	for name, volume := range c.Volumes {
+	for name, volume := range config.Volumes {
 		if !c.ExistsVolume(name) {
 			c.Volumes[name] = volume
 		}
