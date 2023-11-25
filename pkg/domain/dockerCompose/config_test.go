@@ -225,6 +225,7 @@ func TestService_Equal(t *testing.T) {
 			equalableA: &dockerCompose.Service{
 				CapabilitiesAdd:  []string{},
 				CapabilitiesDrop: []string{},
+				DependsOn:        []string{},
 				Deploy:           nil,
 				Environments:     []string{},
 				ExtraHosts:       []string{},
@@ -239,6 +240,7 @@ func TestService_Equal(t *testing.T) {
 			equalableB: &dockerCompose.Service{
 				CapabilitiesAdd:  []string{},
 				CapabilitiesDrop: []string{},
+				DependsOn:        []string{},
 				Deploy:           nil,
 				Environments:     []string{},
 				ExtraHosts:       []string{},
@@ -287,6 +289,24 @@ func TestService_Equal(t *testing.T) {
 				CapabilitiesDrop: []string{},
 			},
 			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOn: []string{},
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			expectedResult: true,
 		},
 		{
 			equalableA: &dockerCompose.Service{
@@ -572,6 +592,52 @@ func TestService_MergeExistingWin(t *testing.T) {
 			},
 			expectedService: &dockerCompose.Service{
 				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+
+		// DependsOn
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
 			},
 		},
 
@@ -1473,6 +1539,52 @@ func TestService_MergeLastWin(t *testing.T) {
 			},
 			expectedService: &dockerCompose.Service{
 				CapabilitiesDrop: []string{"NET_RAW"},
+			},
+		},
+
+		// DependsOn
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				DependsOn: []string{"app"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				DependsOn: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				DependsOn: []string{"app"},
 			},
 		},
 

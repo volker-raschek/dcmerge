@@ -518,6 +518,7 @@ func NewSecret() *Secret {
 type Service struct {
 	CapabilitiesAdd  []string                   `json:"cap_add,omitempty" yaml:"cap_add,omitempty"`
 	CapabilitiesDrop []string                   `json:"cap_drop,omitempty" yaml:"cap_drop,omitempty"`
+	DependsOn        []string                   `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
 	Deploy           *ServiceDeploy             `json:"deploy,omitempty" yaml:"deploy,omitempty"`
 	Environments     []string                   `json:"environment,omitempty" yaml:"environment,omitempty"`
 	ExtraHosts       []string                   `json:"extra_hosts,omitempty" yaml:"extra_hosts,omitempty"`
@@ -644,6 +645,7 @@ func (s *Service) Equal(equalable Equalable) bool {
 	default:
 		return equalSlice(s.CapabilitiesAdd, service.CapabilitiesAdd) &&
 			equalSlice(s.CapabilitiesDrop, service.CapabilitiesDrop) &&
+			equalSlice(s.DependsOn, service.DependsOn) &&
 			s.Deploy.Equal(service.Deploy) &&
 			equalSlice(s.Environments, service.Environments) &&
 			equalSlice(s.ExtraHosts, service.ExtraHosts) &&
@@ -675,6 +677,7 @@ func (s *Service) MergeExistingWin(service *Service) {
 	default:
 		s.mergeExistingWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeExistingWinCapabilitiesDrop(service.CapabilitiesDrop)
+		s.mergeExistingWinDependsOn(service.DependsOn)
 		s.mergeExistingWinDeploy(service.Deploy)
 		s.mergeExistingWinEnvironments(service.Environments)
 		s.mergeExistingWinExtraHosts(service.ExtraHosts)
@@ -708,6 +711,7 @@ func (s *Service) MergeLastWin(service *Service) {
 	default:
 		s.mergeLastWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeLastWinCapabilitiesDrop(service.CapabilitiesDrop)
+		s.mergeLastWinDependsOn(service.DependsOn)
 		s.mergeLastWinDeploy(service.Deploy)
 		s.mergeLastWinEnvironments(service.Environments)
 		s.mergeLastWinExtraHosts(service.ExtraHosts)
@@ -733,6 +737,14 @@ func (s *Service) mergeExistingWinCapabilitiesDrop(capabilitiesDrop []string) {
 	for _, capabilityDrop := range capabilitiesDrop {
 		if !existsInSlice(s.CapabilitiesAdd, capabilityDrop) && len(capabilityDrop) > 0 {
 			s.CapabilitiesDrop = append(s.CapabilitiesDrop, capabilityDrop)
+		}
+	}
+}
+
+func (s *Service) mergeExistingWinDependsOn(dependsOn []string) {
+	for _, depOn := range dependsOn {
+		if !existsInSlice(s.DependsOn, depOn) && len(depOn) > 0 {
+			s.DependsOn = append(s.DependsOn, depOn)
 		}
 	}
 }
@@ -913,8 +925,20 @@ func (s *Service) mergeLastWinCapabilitiesDrop(capabilitiesDrop []string) {
 			continue
 		}
 
-		if !existsInSlice(s.CapabilitiesAdd, capabilityDrop) {
+		if !existsInSlice(s.CapabilitiesDrop, capabilityDrop) {
 			s.CapabilitiesDrop = append(s.CapabilitiesDrop, capabilityDrop)
+		}
+	}
+}
+
+func (s *Service) mergeLastWinDependsOn(dependsOn []string) {
+	for _, dep := range dependsOn {
+		if len(dep) <= 0 {
+			continue
+		}
+
+		if !existsInSlice(s.DependsOn, dep) {
+			s.DependsOn = append(s.DependsOn, dep)
 		}
 	}
 }
