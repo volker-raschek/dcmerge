@@ -15,14 +15,18 @@
       "automerge": true,
       "matchBaseBranches": [ "master" ],
       "matchManagers": [ "dockerfile" ],
-      "matchUpdateTypes": [ "patch" ]
+      "matchUpdateTypes": [ "minor", "patch" ]
     },
     {
-      "addLabels": [ "renovate/dcmerge", "renovate/automerge" ],
-      "automerge": false,
-      "matchPackageNames": [ "dcmerge" ],
-      "matchManagers": [ "regex" ]
+      "description": "Automatically update minor and patch versions of go modules",
+      "addLabels": [ "renovate/gomod", "renovate/automerge" ],
+      "automerge": true,
+      "matchManagers": [ "gomod" ],
+      "matchUpdateTypes": [ "minor", "patch" ]
     }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
   ],
   "rebaseLabel": "renovate/rebase",
   "rebaseWhen": "behind-base-branch"
