@@ -75,7 +75,7 @@ func getDockerComposeViaHTTP(url string) (*dockerCompose.Config, error) {
 func readDockerComposeFromFile(name string) (*dockerCompose.Config, error) {
 	fileStat, err := os.Stat(name)
 	switch {
-	case errors.Is(err, os.ErrNotExist):
+	case err != nil:
 		return nil, err
 	case fileStat.IsDir():
 		return nil, fmt.Errorf("%w: %s", ErrorPathIsDir, name)
