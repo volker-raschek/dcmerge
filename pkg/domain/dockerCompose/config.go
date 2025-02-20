@@ -560,7 +560,7 @@ func (s *Service) ExistsLabel(name string) bool {
 // ExistsPort returns true if the port definition is already present.
 func (s *Service) ExistsPort(src string, dest string, protocol string) bool {
 	for _, port := range s.Ports {
-		s, d, p := splitStringInPort(port)
+		s, d, p := splitStringInPortMapping(port)
 		if s == src && d == dest && p == protocol {
 			return true
 		}
@@ -572,7 +572,7 @@ func (s *Service) ExistsPort(src string, dest string, protocol string) bool {
 // ExistsDestinationPort returns true if the destination port is already used.
 func (s *Service) ExistsDestinationPort(dest string) bool {
 	for _, port := range s.Ports {
-		_, d, _ := splitStringInPort(port)
+		_, d, _ := splitStringInPortMapping(port)
 		if d == dest {
 			return true
 		}
@@ -584,7 +584,7 @@ func (s *Service) ExistsDestinationPort(dest string) bool {
 // ExistsSourcePort returns true if the source port is already used.
 func (s *Service) ExistsSourcePort(src string) bool {
 	for _, port := range s.Ports {
-		s, _, _ := splitStringInPort(port)
+		s, _, _ := splitStringInPortMapping(port)
 		if s == src {
 			return true
 		}
@@ -861,7 +861,7 @@ func (s *Service) mergeExistingWinPorts(ports []string) {
 				continue
 			}
 
-			src, dest, protocol := splitStringInPort(port)
+			src, dest, protocol := splitStringInPortMapping(port)
 			if !s.ExistsDestinationPort(dest) {
 				s.SetPort(src, dest, protocol)
 			}
@@ -1057,7 +1057,7 @@ func (s *Service) mergeLastWinPorts(ports []string) {
 				continue
 			}
 
-			src, dest, protocol := splitStringInPort(port)
+			src, dest, protocol := splitStringInPortMapping(port)
 			s.SetPort(src, dest, protocol)
 		}
 	}
@@ -1139,7 +1139,7 @@ func (s *Service) RemoveLabel(name string) {
 func (s *Service) RemovePort(dest string) {
 	ports := make([]string, 0)
 	for _, port := range s.Ports {
-		srcPort, destPort, protocol := splitStringInPort(port)
+		srcPort, destPort, protocol := splitStringInPortMapping(port)
 
 		switch {
 		case destPort == dest && len(protocol) <= 0:
@@ -1951,17 +1951,33 @@ func splitStringInKeyValue(s, sep string) (string, string) {
 	return key, value
 }
 
-func splitStringInPort(s string) (string, string, string) {
-	parts := strings.Split(s, portDelimiter)
-	src := parts[0]
-	rest := parts[1]
+// splitStringInPortMapping parses a string and returns the src, dest port including an optional protocol.
+//
+//	// Example
+//	s, d, p := splitStringInPortMapping("80:80/tcp")
+//	// Output: "80" "80" "tcp"
+//	s, d, p := splitStringInPortMapping("0.0.0.0:80:80/tcp")
+//	// Output: "0.0.0.0:80" "80" "tcp"
+func splitStringInPortMapping(s string) (string, string, string) {
+	p := port(s)
 
-	parts = strings.Split(rest, portProtocolDelimiter)
-	if len(parts) == 2 {
-		return src, parts[0], parts[1]
+	var src string
+	switch {
+	case p.existsSrcIP() && p.existsSrcPort():
+		src = fmt.Sprintf("%s:%s", p.getSrcIP(), p.getSrcPort())
+	case !p.existsSrcIP():
+		src = p.getSrcPort()
 	}
 
-	return src, parts[0], ""
+	var dst string
+	switch {
+	case p.existsDstIP() && p.existsDstPort():
+		dst = fmt.Sprintf("%s:%s", p.getDstIP(), p.getDstPort())
+	case !p.existsDstIP():
+		dst = p.getDstPort()
+	}
+
+	return src, dst, p.getProtocol()
 }
 
 func splitStringInVolume(s string) (string, string, string) {
@@ -1975,22 +1991,108 @@ func splitStringInVolume(s string) (string, string, string) {
 	return src, dest, ""
 }
 
-var protocolRegExp = regexp.MustCompile(`/(?<protocol>[a-z]*)$`)
+var (
+	regExpPort = regexp.MustCompile(`^((?<srcIP>([\d]{1,3}\.){3}[\d]{1,3}):)?(?<srcPort>[\d]{1,5}):((?<dstIP>([\d]{1,3}\.){3}[\d]{1,3}):)?(?<dstPort>[\d]{1,5})(\/(?<protocol>[a-z]*))?$`)
+)
 
 type port string
 
-func (p port) existsProtocol() bool {
-	return protocolRegExp.MatchString(string(p))
+// existsDstPort returns true, if the port string contains a trailing destination port definition.
+func (p port) existsDstPort() bool {
+	return len(p.getDstPort()) > 0
 }
 
-func (p port) getProtocol() string {
-	result := make(map[string]string, 0)
-	matches := protocolRegExp.FindStringSubmatch(string(p))
-	for i, name := range protocolRegExp.SubexpNames() {
-		if i != 0 && len(name) > 0 {
-			result[name] = matches[i]
-		}
+// existsDstIP returns true, if the port string contains a trailing destination ip definition.
+func (p port) existsDstIP() bool {
+	return len(p.getDstIP()) > 0
+}
+
+// existsProtocol returns true, if the port string contains a protocol definition.
+func (p port) existsProtocol() bool {
+	return len(p.getProtocol()) > 0
+}
+
+// existsSrcIP returns true, if the port string contains a leading src ip definition.
+func (p port) existsSrcIP() bool {
+	return len(p.getSrcIP()) > 0
+}
+
+// existsSrcPort returns true, if the port string contains a leading src port definition.
+func (p port) existsSrcPort() bool {
+	return len(p.getSrcPort()) > 0
+}
+
+// getSrcIP returns the destination ip, if the port string contains a destination ip definition.
+func (p port) getDstIP() string {
+	matches := regExpPort.FindStringSubmatch(string(p))
+	i := regExpPort.SubexpIndex("dstIP")
+
+	switch {
+	case len(matches) <= 0:
+		return ""
+	case i < 0:
+		return ""
 	}
 
-	return result["protocol"]
+	return matches[i]
+}
+
+// getSrcPort returns the destination port, if the port string contains an destination port definition.
+func (p port) getDstPort() string {
+	matches := regExpPort.FindStringSubmatch(string(p))
+	i := regExpPort.SubexpIndex("dstPort")
+
+	switch {
+	case len(matches) <= 0:
+		return ""
+	case i < 0:
+		return ""
+	}
+
+	return matches[i]
+}
+
+// getProtocol returns the protocol, if the port string contains a protocol definition.
+func (p port) getProtocol() string {
+	matches := regExpPort.FindStringSubmatch(string(p))
+	i := regExpPort.SubexpIndex("protocol")
+
+	switch {
+	case len(matches) <= 0:
+		return ""
+	case i < 0:
+		return ""
+	}
+
+	return matches[i]
+}
+
+// getSrcIP returns the source ip, if the port string contains an src ip definition.
+func (p port) getSrcIP() string {
+	matches := regExpPort.FindStringSubmatch(string(p))
+	i := regExpPort.SubexpIndex("srcIP")
+
+	switch {
+	case len(matches) <= 0:
+		return ""
+	case i < 0:
+		return ""
+	}
+
+	return matches[i]
+}
+
+// getSrcPort returns the source port, if the port string contains an src port definition.
+func (p port) getSrcPort() string {
+	matches := regExpPort.FindStringSubmatch(string(p))
+	i := regExpPort.SubexpIndex("srcPort")
+
+	switch {
+	case len(matches) <= 0:
+		return ""
+	case i < 0:
+		return ""
+	}
+
+	return matches[i]
 }
