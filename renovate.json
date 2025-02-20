@@ -23,6 +23,15 @@
       "automerge": true,
       "matchManagers": [ "gomod" ],
       "matchUpdateTypes": [ "minor", "patch" ]
+    },
+    {
+      "description": "Disable major update version of go modules",
+      "enabled": false,
+      "matchManagers": [ "gomod" ],
+      "matchPackageNames": [
+        "gopkg.in/yaml.v2"
+      ],
+      "matchUpdateTypes": [ "major" ]
     }
   ],
   "postUpdateOptions": [
