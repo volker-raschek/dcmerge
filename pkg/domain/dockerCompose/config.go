@@ -1898,7 +1898,7 @@ func (v *Volume) MergeLastWin(volume *Volume) {
 	}
 }
 
-func (v *Volume) mergeExistingWinExternal(external bool) {
+func (v *Volume) mergeExistingWinExternal(_ bool) {
 	if v.External {
 		return
 	}
@@ -2022,6 +2022,17 @@ func (p port) existsSrcPort() bool {
 	return len(p.getSrcPort()) > 0
 }
 
+// getDst returns the concatenation of the destination ip and port. If the destination ip is empty, only the port will
+// be returned.
+func (p port) getDst() string {
+	switch {
+	case p.existsDstIP():
+		return fmt.Sprintf("%s%s%s", p.getDstIP(), portDelimiter, p.getDstPort())
+	default:
+		return p.getDstPort()
+	}
+}
+
 // getSrcIP returns the destination ip, if the port string contains a destination ip definition.
 func (p port) getDstIP() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
@@ -2065,6 +2076,17 @@ func (p port) getProtocol() string {
 	}
 
 	return matches[i]
+}
+
+// getSrc returns the concatenation of the source ip and port. If the source ip is empty, only the port will be
+// returned.
+func (p port) getSrc() string {
+	switch {
+	case p.existsSrcIP():
+		return fmt.Sprintf("%s%s%s", p.getSrcIP(), portDelimiter, p.getSrcPort())
+	default:
+		return p.getSrcPort()
+	}
 }
 
 // getSrcIP returns the source ip, if the port string contains an src ip definition.
