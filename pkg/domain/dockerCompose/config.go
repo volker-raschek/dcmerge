@@ -2,6 +2,7 @@ package dockerCompose
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -1972,4 +1973,24 @@ func splitStringInVolume(s string) (string, string, string) {
 		return src, dest, perm
 	}
 	return src, dest, ""
+}
+
+var protocolRegExp = regexp.MustCompile(`/(?<protocol>[a-z]*)$`)
+
+type port string
+
+func (p port) existsProtocol() bool {
+	return protocolRegExp.MatchString(string(p))
+}
+
+func (p port) getProtocol() string {
+	result := make(map[string]string, 0)
+	matches := protocolRegExp.FindStringSubmatch(string(p))
+	for i, name := range protocolRegExp.SubexpNames() {
+		if i != 0 && len(name) > 0 {
+			result[name] = matches[i]
+		}
+	}
+
+	return result["protocol"]
 }
