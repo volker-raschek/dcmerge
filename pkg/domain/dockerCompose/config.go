@@ -856,15 +856,33 @@ func (s *Service) mergeExistingWinPorts(ports []string) {
 	case s.Ports == nil && ports == nil:
 		return
 	default:
-		for _, port := range ports {
-			if len(port) <= 0 {
-				continue
+	LOOP:
+		for i := range ports {
+			if len(ports[i]) <= 0 {
+				continue LOOP
 			}
 
-			src, dest, protocol := splitStringInPortMapping(port)
-			if !s.ExistsDestinationPort(dest) {
-				s.SetPort(src, dest, protocol)
+			newPort := port(ports[i])
+
+			for j := range s.Ports {
+				existingPort := port(s.Ports[j])
+				switch {
+				case newPort.existsSrcIP() && existingPort.existsSrcIP() &&
+					newPort.getSrc() == existingPort.getSrc():
+					continue LOOP
+				case !newPort.existsSrcIP() && existingPort.existsSrcIP() &&
+					newPort.getSrcPort() == existingPort.getSrcPort():
+					continue LOOP
+				case newPort.existsSrcIP() && !existingPort.existsSrcIP() &&
+					newPort.getSrcPort() == existingPort.getSrcPort():
+					continue LOOP
+				case !newPort.existsSrcIP() && !existingPort.existsSrcIP() &&
+					newPort.getSrcPort() == existingPort.getSrcPort():
+					continue LOOP
+				}
 			}
+
+			s.Ports = append(s.Ports, ports[i])
 		}
 	}
 }

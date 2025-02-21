@@ -1183,6 +1183,43 @@ func TestService_MergeExistingWin(t *testing.T) {
 				Ports: []string{"80:80"},
 			},
 		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{"0.0.0.0:6300:6300/tcp"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+					"0.0.0.0:6300:6300/tcp",
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []string{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []string{
+					"15005:15005",
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []string{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+				},
+			},
+		},
 
 		// Secrets
 		{
