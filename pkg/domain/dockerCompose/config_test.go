@@ -232,7 +232,7 @@ func TestService_Equal(t *testing.T) {
 				Image:            "",
 				Labels:           []string{},
 				Networks:         map[string]*dockerCompose.ServiceNetwork{},
-				Ports:            []string{},
+				Ports:            []dockerCompose.Port{},
 				Secrets:          []string{},
 				ULimits:          nil,
 				Volumes:          []string{},
@@ -247,7 +247,7 @@ func TestService_Equal(t *testing.T) {
 				Image:            "",
 				Labels:           []string{},
 				Networks:         map[string]*dockerCompose.ServiceNetwork{},
-				Ports:            []string{},
+				Ports:            []dockerCompose.Port{},
 				Secrets:          []string{},
 				ULimits:          nil,
 				Volumes:          []string{},
@@ -418,19 +418,19 @@ func TestService_Equal(t *testing.T) {
 		},
 		{
 			equalableA: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 			equalableB: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 			expectedResult: true,
 		},
 		{
 			equalableA: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 			equalableB: &dockerCompose.Service{
-				Ports: []string{"80:80/udp"},
+				Ports: []dockerCompose.Port{"80:80/udp"},
 			},
 			expectedResult: false,
 		},
@@ -1108,13 +1108,13 @@ func TestService_MergeExistingWin(t *testing.T) {
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
 				Ports: nil,
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
@@ -1122,79 +1122,79 @@ func TestService_MergeExistingWin(t *testing.T) {
 				Ports: nil,
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"10080:80"},
+				Ports: []dockerCompose.Port{"80:8080"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"10080:80/udp"},
+				Ports: []dockerCompose.Port{"80:80/udp"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{
+				Ports: []dockerCompose.Port{
 					"0.0.0.0:15005:5005/tcp",
 					"0.0.0.0:18080:8080/tcp",
 				},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"0.0.0.0:6300:6300/tcp"},
+				Ports: []dockerCompose.Port{"0.0.0.0:6300:6300/tcp"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{
+				Ports: []dockerCompose.Port{
 					"0.0.0.0:15005:5005/tcp",
 					"0.0.0.0:18080:8080/tcp",
 					"0.0.0.0:6300:6300/tcp",
@@ -1203,18 +1203,18 @@ func TestService_MergeExistingWin(t *testing.T) {
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{
+				Ports: []dockerCompose.Port{
 					"0.0.0.0:15005:5005/tcp",
 					"0.0.0.0:18080:8080/tcp",
 				},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{
+				Ports: []dockerCompose.Port{
 					"15005:15005",
 				},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{
+				Ports: []dockerCompose.Port{
 					"0.0.0.0:15005:5005/tcp",
 					"0.0.0.0:18080:8080/tcp",
 				},
@@ -2053,13 +2053,13 @@ func TestService_MergeLastWin(t *testing.T) {
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
 				Ports: nil,
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
@@ -2067,76 +2067,113 @@ func TestService_MergeLastWin(t *testing.T) {
 				Ports: nil,
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{},
+				Ports: []dockerCompose.Port{},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"10080:80"},
+				Ports: []dockerCompose.Port{"80:10080"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"10080:80"},
+				Ports: []dockerCompose.Port{"80:10080"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80/tcp"},
+				Ports: []dockerCompose.Port{"80:80/tcp"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{"10080:80/udp"},
+				Ports: []dockerCompose.Port{"80:80/udp"},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"10080:80/udp"},
+				Ports: []dockerCompose.Port{"80:80/udp"},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				Ports: []string{""},
+				Ports: []dockerCompose.Port{""},
 			},
 			expectedService: &dockerCompose.Service{
-				Ports: []string{"80:80"},
+				Ports: []dockerCompose.Port{"80:80"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"0.0.0.0:6300:6300/tcp"},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+					"0.0.0.0:6300:6300/tcp",
+				},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:15005:5005/tcp",
+					"0.0.0.0:18080:8080/tcp",
+				},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:15005:15005",
+				},
+			},
+			expectedService: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:15005:15005",
+					"0.0.0.0:18080:8080/tcp",
+				},
 			},
 		},
 
@@ -2406,6 +2443,203 @@ func TestService_MergeLastWin(t *testing.T) {
 	for i, testCase := range testCases {
 		testCase.serviceDeploymentA.MergeLastWin(testCase.serviceDeploymentB)
 		require.True(testCase.expectedService.Equal(testCase.serviceDeploymentA), "Failed test case %v", i)
+	}
+}
+
+func TestService_RemovePortByDst(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		s                *dockerCompose.Service
+		removePortsByDst []string
+		expectedPorts    []dockerCompose.Port
+	}{
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"80:80/tcp",
+					"0.0.0.0:443:172.25.18.20:443/tcp",
+					"10.11.12.13:53:53/tcp",
+					"10.11.12.13:53:53/udp",
+				},
+			},
+			removePortsByDst: []string{
+				"53",
+			},
+			expectedPorts: []dockerCompose.Port{
+				"80:80/tcp",
+				"0.0.0.0:443:172.25.18.20:443/tcp",
+			},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"80:80/tcp",
+					"0.0.0.0:443:172.25.18.20:443/tcp",
+					"10.11.12.13:53:53/tcp",
+					"10.11.12.13:53:53/udp",
+				},
+			},
+			removePortsByDst: []string{
+				"172.25.18.20:443",
+			},
+			expectedPorts: []dockerCompose.Port{
+				"80:80/tcp",
+				"10.11.12.13:53:53/tcp",
+				"10.11.12.13:53:53/udp",
+			},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:443:443/tcp",
+				},
+			},
+			removePortsByDst: []string{
+				"443",
+			},
+			expectedPorts: []dockerCompose.Port{},
+		},
+	}
+
+	for i, testCase := range testCases {
+		for _, removePortByDst := range testCase.removePortsByDst {
+			testCase.s.RemovePortByDst(removePortByDst)
+		}
+		require.Equal(testCase.expectedPorts, testCase.s.Ports, "TestCase %v", i)
+	}
+}
+
+func TestService_RemovePortBySrc(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		s                *dockerCompose.Service
+		removePortsBySrc []string
+		expectedPorts    []dockerCompose.Port
+	}{
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"80:80/tcp",
+					"0.0.0.0:443:172.25.18.20:443/tcp",
+					"10.11.12.13:53:53/tcp",
+					"10.11.12.13:53:53/udp",
+				},
+			},
+			removePortsBySrc: []string{
+				"10.11.12.13:53",
+			},
+			expectedPorts: []dockerCompose.Port{
+				"80:80/tcp",
+				"0.0.0.0:443:172.25.18.20:443/tcp",
+			},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"80:80/tcp",
+					"0.0.0.0:443:172.25.18.20:443/tcp",
+					"10.11.12.13:53:53/tcp",
+					"10.11.12.13:53:53/udp",
+				},
+			},
+			removePortsBySrc: []string{
+				"0.0.0.0:443",
+			},
+			expectedPorts: []dockerCompose.Port{
+				"80:80/tcp",
+				"10.11.12.13:53:53/tcp",
+				"10.11.12.13:53:53/udp",
+			},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{
+					"0.0.0.0:443:443/tcp",
+				},
+			},
+			removePortsBySrc: []string{
+				"0.0.0.0:443",
+			},
+			expectedPorts: []dockerCompose.Port{},
+		},
+	}
+
+	for i, testCase := range testCases {
+		for _, removePortBySrc := range testCase.removePortsBySrc {
+			testCase.s.RemovePortBySrc(removePortBySrc)
+		}
+		require.Equal(testCase.expectedPorts, testCase.s.Ports, "TestCase %v", i)
+	}
+}
+
+func TestService_SetPort(t *testing.T) {
+	require := require.New(t)
+
+	testCases := []struct {
+		s             *dockerCompose.Service
+		setPorts      []string
+		expectedPorts []dockerCompose.Port
+	}{
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"8080:8080"},
+			},
+			setPorts:      []string{},
+			expectedPorts: []dockerCompose.Port{"8080:8080"},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"8080:8080"},
+			},
+			setPorts:      []string{"8080:8080"},
+			expectedPorts: []dockerCompose.Port{"8080:8080"},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"8080:8080"},
+			},
+			setPorts:      []string{"8080:80"},
+			expectedPorts: []dockerCompose.Port{"8080:80"},
+		},
+
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"0.0.0.0:8080:8080"},
+			},
+			setPorts:      []string{},
+			expectedPorts: []dockerCompose.Port{"0.0.0.0:8080:8080"},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"0.0.0.0:8080:8080"},
+			},
+			setPorts:      []string{"0.0.0.0:8080:8080"},
+			expectedPorts: []dockerCompose.Port{"0.0.0.0:8080:8080"},
+		},
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"0.0.0.0:8080:8080"},
+			},
+			setPorts:      []string{"0.0.0.0:8080:80"},
+			expectedPorts: []dockerCompose.Port{"0.0.0.0:8080:80"},
+		},
+
+		{
+			s: &dockerCompose.Service{
+				Ports: []dockerCompose.Port{"0.0.0.0:8080:8080", "0.0.0.0:8443:8443"},
+			},
+			setPorts:      []string{"0.0.0.0:8080:80"},
+			expectedPorts: []dockerCompose.Port{"0.0.0.0:8080:80", "0.0.0.0:8443:8443"},
+		},
+	}
+
+	for i, testCase := range testCases {
+		for _, setPort := range testCase.setPorts {
+			testCase.s.SetPort(setPort)
+		}
+		require.ElementsMatch(testCase.expectedPorts, testCase.s.Ports, "TestCase %v", i)
 	}
 }
 

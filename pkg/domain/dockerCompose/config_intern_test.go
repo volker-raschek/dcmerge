@@ -122,7 +122,7 @@ func TestPort_DstIP(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		p := port(testCase.s)
+		p := Port(testCase.s)
 		require.Equal(testCase.expectedBool, p.existsDstIP(), "TestCase %v", i)
 		require.Equal(testCase.expectedString, p.getDstIP(), "TestCase %v", i)
 	}
@@ -191,7 +191,7 @@ func TestPort_DstPort(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		p := port(testCase.s)
+		p := Port(testCase.s)
 		require.Equal(testCase.expectedBool, p.existsDstPort(), "TestCase %v", i)
 		require.Equal(testCase.expectedString, p.getDstPort(), "TestCase %v", i)
 	}
@@ -263,7 +263,7 @@ func TestPort_Protocol(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		p := port(testCase.s)
+		p := Port(testCase.s)
 		require.Equal(testCase.expectedBool, p.existsProtocol(), "TestCase %v", i)
 		require.Equal(testCase.expectedString, p.getProtocol(), "TestCase %v", i)
 	}
@@ -342,7 +342,7 @@ func TestPort_SrcIP(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		p := port(testCase.s)
+		p := Port(testCase.s)
 		require.Equal(testCase.expectedBool, p.existsSrcIP(), "TestCase %v", i)
 		require.Equal(testCase.expectedString, p.getSrcIP(), "TestCase %v", i)
 	}
@@ -411,7 +411,7 @@ func TestPort_SrcPort(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		p := port(testCase.s)
+		p := Port(testCase.s)
 		require.Equal(testCase.expectedBool, p.existsSrcPort(), "TestCase %v", i)
 		require.Equal(testCase.expectedString, p.getSrcPort(), "TestCase %v", i)
 	}

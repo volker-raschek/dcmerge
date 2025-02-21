@@ -526,7 +526,7 @@ type Service struct {
 	Image            string                     `json:"image,omitempty" yaml:"image,omitempty"`
 	Labels           []string                   `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Networks         map[string]*ServiceNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
-	Ports            []string                   `json:"ports,omitempty" yaml:"ports,omitempty"`
+	Ports            []Port                     `json:"ports,omitempty" yaml:"ports,omitempty"`
 	Secrets          []string                   `json:"secrets,omitempty" yaml:"secrets,omitempty"`
 	ULimits          *ServiceULimits            `json:"ulimits,omitempty" yaml:"ulimits,omitempty"`
 	Volumes          []string                   `json:"volumes,omitempty" yaml:"volumes,omitempty"`
@@ -557,39 +557,22 @@ func (s *Service) ExistsLabel(name string) bool {
 	return false
 }
 
-// ExistsPort returns true if the port definition is already present.
-func (s *Service) ExistsPort(src string, dest string, protocol string) bool {
-	for _, port := range s.Ports {
-		s, d, p := splitStringInPortMapping(port)
-		if s == src && d == dest && p == protocol {
+// ExistsPort returns true if the port definition is already present. The port defines a mapping between the host system
+// port and the container port. It is also possible to specify the individual ip address of the host system or the
+// container. Additionally, the protocol can be specified as suffix.
+//
+//	// Example
+//	s := new(Service)
+//	b := s.ExistsPort("80:80")
+//	b = s.ExistsPort("0.0.0.0:80:80/tcp")
+//	b = s.ExistsPort("0.0.0.0:80:80/tcp")
+//	b = s.ExistsPort("192.168.178.10:80:172.25.18.20:80/tcp")
+func (s *Service) ExistsPort(port string) bool {
+	for _, p := range s.Ports {
+		if string(p) == port {
 			return true
 		}
 	}
-
-	return false
-}
-
-// ExistsDestinationPort returns true if the destination port is already used.
-func (s *Service) ExistsDestinationPort(dest string) bool {
-	for _, port := range s.Ports {
-		_, d, _ := splitStringInPortMapping(port)
-		if d == dest {
-			return true
-		}
-	}
-
-	return false
-}
-
-// ExistsSourcePort returns true if the source port is already used.
-func (s *Service) ExistsSourcePort(src string) bool {
-	for _, port := range s.Ports {
-		s, _, _ := splitStringInPortMapping(port)
-		if s == src {
-			return true
-		}
-	}
-
 	return false
 }
 
@@ -847,7 +830,7 @@ func (s *Service) mergeExistingWinNetworks(networks map[string]*ServiceNetwork) 
 	}
 }
 
-func (s *Service) mergeExistingWinPorts(ports []string) {
+func (s *Service) mergeExistingWinPorts(ports []Port) {
 	switch {
 	case s.Ports == nil && ports != nil:
 		s.Ports = ports
@@ -862,10 +845,10 @@ func (s *Service) mergeExistingWinPorts(ports []string) {
 				continue LOOP
 			}
 
-			newPort := port(ports[i])
+			newPort := Port(ports[i])
 
 			for j := range s.Ports {
-				existingPort := port(s.Ports[j])
+				existingPort := Port(s.Ports[j])
 				switch {
 				case newPort.existsSrcIP() && existingPort.existsSrcIP() &&
 					newPort.getSrc() == existingPort.getSrc():
@@ -1061,7 +1044,7 @@ func (s *Service) mergeLastWinNetworks(networks map[string]*ServiceNetwork) {
 	}
 }
 
-func (s *Service) mergeLastWinPorts(ports []string) {
+func (s *Service) mergeLastWinPorts(ports []Port) {
 	switch {
 	case s.Ports == nil && ports != nil:
 		s.Ports = ports
@@ -1070,13 +1053,11 @@ func (s *Service) mergeLastWinPorts(ports []string) {
 	case s.Ports == nil && ports == nil:
 		return
 	default:
-		for _, port := range ports {
-			if len(port) <= 0 {
+		for i := range ports {
+			if len(ports[i]) <= 0 {
 				continue
 			}
-
-			src, dest, protocol := splitStringInPortMapping(port)
-			s.SetPort(src, dest, protocol)
+			s.SetPort(string(ports[i]))
 		}
 	}
 }
@@ -1139,8 +1120,7 @@ func (s *Service) RemoveEnvironment(name string) {
 	s.Environments = environments
 }
 
-// RemoveLabel remove all found labels from the internal slice matching by the
-// passed name.
+// RemoveLabel remove all found labels from the internal slice matching by the passed name.
 func (s *Service) RemoveLabel(name string) {
 	labels := make([]string, 0)
 	for _, label := range s.Labels {
@@ -1152,25 +1132,47 @@ func (s *Service) RemoveLabel(name string) {
 	s.Labels = labels
 }
 
-// RemovePort remove all found ports from the internal slice matching by the
-// passed dest port.
-func (s *Service) RemovePort(dest string) {
-	ports := make([]string, 0)
+// RemovePortByDst remove all found ports from the internal slice matching by the passed destination. The destination
+// can contains only the destination port, but also the destination ip address.
+//
+//	// Example
+//	s := new(Service)
+//	s.RemovePortByDst("8080")
+//	s.RemovePortByDst("172.25.18.20:8080")
+func (s *Service) RemovePortByDst(dest string) {
+	ports := make([]Port, 0)
 	for _, port := range s.Ports {
-		srcPort, destPort, protocol := splitStringInPortMapping(port)
-
 		switch {
-		case destPort == dest && len(protocol) <= 0:
-			s.Ports = append(s.Ports, fmt.Sprintf("%s%s%s", srcPort, portDelimiter, destPort))
-		case destPort == dest && len(protocol) > 0:
-			s.Ports = append(s.Ports, fmt.Sprintf("%s%s%s%s%s", srcPort, portDelimiter, destPort, portProtocolDelimiter, protocol))
+		case port.getDst() == dest:
+			continue
+		default:
+			ports = append(ports, port)
 		}
 	}
 	s.Ports = ports
 }
 
-// RemoveVolume remove all found volumes from the internal slice matching by the
-// dest path.
+// RemovePortBySrc remove all found ports from the internal slice matching by the passed source. The source can contains
+// only the source port, but also the source ip address.
+//
+//	// Example
+//	s := new(Service)
+//	s.RemovePortBySrc("8080")
+//	s.RemovePortBySrc("192.168.178.10:8080")
+func (s *Service) RemovePortBySrc(src string) {
+	ports := make([]Port, 0)
+	for _, port := range s.Ports {
+		switch {
+		case port.getSrc() == src:
+			continue
+		default:
+			ports = append(ports, port)
+		}
+	}
+	s.Ports = ports
+}
+
+// RemoveVolume remove all found volumes from the internal slice matching by the dest path.
 func (s *Service) RemoveVolume(dest string) {
 	volumes := make([]string, 0)
 	for _, volume := range s.Volumes {
@@ -1198,14 +1200,16 @@ func (s *Service) SetLabel(name string, value string) {
 	s.Labels = append(s.Labels, fmt.Sprintf("%s%s%s", name, labelDelimiter, value))
 }
 
-// SetPort add or overwrite an existing port.
-func (s *Service) SetPort(src string, dest string, protocol string) {
-	s.RemovePort(dest)
-	if len(protocol) <= 0 {
-		s.Ports = append(s.Ports, fmt.Sprintf("%s%s%s", src, volumeDelimiter, dest))
-	} else {
-		s.Ports = append(s.Ports, fmt.Sprintf("%s%s%s%s%s", src, portDelimiter, dest, portProtocolDelimiter, protocol))
-	}
+// SetPort add or overwrite an existing source port.
+//
+//	// Example
+//	s := new(Service)
+//	s.SetPort("0.0.0.0:443:172.25.18.20:8443/tcp")	// Add new port
+//	s.SetPort("0.0.0.0:443:10.254.611.66:443/tcp")	// Overwrite port determined by source port
+func (s *Service) SetPort(port string) {
+	newPort := Port(port)
+	s.RemovePortBySrc(newPort.getSrc())
+	s.Ports = append(s.Ports, newPort)
 }
 
 // SetVolume add or overwrite an existing volume.
@@ -1228,7 +1232,7 @@ func NewService() *Service {
 		ExtraHosts:       make([]string, 0),
 		Labels:           make([]string, 0),
 		Networks:         make(map[string]*ServiceNetwork),
-		Ports:            make([]string, 0),
+		Ports:            make([]Port, 0),
 		Secrets:          make([]string, 0),
 		ULimits:          new(ServiceULimits),
 		Volumes:          make([]string, 0),
@@ -1976,8 +1980,10 @@ func splitStringInKeyValue(s, sep string) (string, string) {
 //	// Output: "80" "80" "tcp"
 //	s, d, p := splitStringInPortMapping("0.0.0.0:80:80/tcp")
 //	// Output: "0.0.0.0:80" "80" "tcp"
+//
+// Deprecated: Instead of using the splitStringInPortMapping function, use the method of the type Port{}.
 func splitStringInPortMapping(s string) (string, string, string) {
-	p := port(s)
+	p := Port(s)
 
 	var src string
 	switch {
@@ -2013,36 +2019,36 @@ var (
 	regExpPort = regexp.MustCompile(`^((?<srcIP>([\d]{1,3}\.){3}[\d]{1,3}):)?(?<srcPort>[\d]{1,5}):((?<dstIP>([\d]{1,3}\.){3}[\d]{1,3}):)?(?<dstPort>[\d]{1,5})(\/(?<protocol>[a-z]*))?$`)
 )
 
-type port string
+type Port string
 
 // existsDstPort returns true, if the port string contains a trailing destination port definition.
-func (p port) existsDstPort() bool {
+func (p Port) existsDstPort() bool {
 	return len(p.getDstPort()) > 0
 }
 
 // existsDstIP returns true, if the port string contains a trailing destination ip definition.
-func (p port) existsDstIP() bool {
+func (p Port) existsDstIP() bool {
 	return len(p.getDstIP()) > 0
 }
 
 // existsProtocol returns true, if the port string contains a protocol definition.
-func (p port) existsProtocol() bool {
+func (p Port) existsProtocol() bool {
 	return len(p.getProtocol()) > 0
 }
 
 // existsSrcIP returns true, if the port string contains a leading src ip definition.
-func (p port) existsSrcIP() bool {
+func (p Port) existsSrcIP() bool {
 	return len(p.getSrcIP()) > 0
 }
 
 // existsSrcPort returns true, if the port string contains a leading src port definition.
-func (p port) existsSrcPort() bool {
+func (p Port) existsSrcPort() bool {
 	return len(p.getSrcPort()) > 0
 }
 
 // getDst returns the concatenation of the destination ip and port. If the destination ip is empty, only the port will
 // be returned.
-func (p port) getDst() string {
+func (p Port) getDst() string {
 	switch {
 	case p.existsDstIP():
 		return fmt.Sprintf("%s%s%s", p.getDstIP(), portDelimiter, p.getDstPort())
@@ -2052,7 +2058,7 @@ func (p port) getDst() string {
 }
 
 // getSrcIP returns the destination ip, if the port string contains a destination ip definition.
-func (p port) getDstIP() string {
+func (p Port) getDstIP() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
 	i := regExpPort.SubexpIndex("dstIP")
 
@@ -2067,7 +2073,7 @@ func (p port) getDstIP() string {
 }
 
 // getSrcPort returns the destination port, if the port string contains an destination port definition.
-func (p port) getDstPort() string {
+func (p Port) getDstPort() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
 	i := regExpPort.SubexpIndex("dstPort")
 
@@ -2082,7 +2088,7 @@ func (p port) getDstPort() string {
 }
 
 // getProtocol returns the protocol, if the port string contains a protocol definition.
-func (p port) getProtocol() string {
+func (p Port) getProtocol() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
 	i := regExpPort.SubexpIndex("protocol")
 
@@ -2098,7 +2104,7 @@ func (p port) getProtocol() string {
 
 // getSrc returns the concatenation of the source ip and port. If the source ip is empty, only the port will be
 // returned.
-func (p port) getSrc() string {
+func (p Port) getSrc() string {
 	switch {
 	case p.existsSrcIP():
 		return fmt.Sprintf("%s%s%s", p.getSrcIP(), portDelimiter, p.getSrcPort())
@@ -2108,7 +2114,7 @@ func (p port) getSrc() string {
 }
 
 // getSrcIP returns the source ip, if the port string contains an src ip definition.
-func (p port) getSrcIP() string {
+func (p Port) getSrcIP() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
 	i := regExpPort.SubexpIndex("srcIP")
 
@@ -2123,7 +2129,7 @@ func (p port) getSrcIP() string {
 }
 
 // getSrcPort returns the source port, if the port string contains an src port definition.
-func (p port) getSrcPort() string {
+func (p Port) getSrcPort() string {
 	matches := regExpPort.FindStringSubmatch(string(p))
 	i := regExpPort.SubexpIndex("srcPort")
 
