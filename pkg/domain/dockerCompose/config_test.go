@@ -223,34 +223,34 @@ func TestService_Equal(t *testing.T) {
 		},
 		{
 			equalableA: &dockerCompose.Service{
-				CapabilitiesAdd:  []string{},
-				CapabilitiesDrop: []string{},
-				DependsOn:        []string{},
-				Deploy:           nil,
-				Environments:     []string{},
-				ExtraHosts:       []string{},
-				Image:            "",
-				Labels:           []string{},
-				Networks:         map[string]*dockerCompose.ServiceNetwork{},
-				Ports:            []dockerCompose.Port{},
-				Secrets:          []string{},
-				ULimits:          nil,
-				Volumes:          []string{},
+				CapabilitiesAdd:    []string{},
+				CapabilitiesDrop:   []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
+				Deploy:             nil,
+				Environments:       []string{},
+				ExtraHosts:         []string{},
+				Image:              "",
+				Labels:             []string{},
+				Networks:           map[string]*dockerCompose.ServiceNetwork{},
+				Ports:              []dockerCompose.Port{},
+				Secrets:            []string{},
+				ULimits:            nil,
+				Volumes:            []string{},
 			},
 			equalableB: &dockerCompose.Service{
-				CapabilitiesAdd:  []string{},
-				CapabilitiesDrop: []string{},
-				DependsOn:        []string{},
-				Deploy:           nil,
-				Environments:     []string{},
-				ExtraHosts:       []string{},
-				Image:            "",
-				Labels:           []string{},
-				Networks:         map[string]*dockerCompose.ServiceNetwork{},
-				Ports:            []dockerCompose.Port{},
-				Secrets:          []string{},
-				ULimits:          nil,
-				Volumes:          []string{},
+				CapabilitiesAdd:    []string{},
+				CapabilitiesDrop:   []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
+				Deploy:             nil,
+				Environments:       []string{},
+				ExtraHosts:         []string{},
+				Image:              "",
+				Labels:             []string{},
+				Networks:           map[string]*dockerCompose.ServiceNetwork{},
+				Ports:              []dockerCompose.Port{},
+				Secrets:            []string{},
+				ULimits:            nil,
+				Volumes:            []string{},
 			},
 			expectedResult: true,
 		},
@@ -292,19 +292,37 @@ func TestService_Equal(t *testing.T) {
 		},
 		{
 			equalableA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			equalableB: &dockerCompose.Service{
-				DependsOn: []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
 			},
 			expectedResult: false,
 		},
 		{
 			equalableA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			equalableB: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{}},
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			expectedResult: true,
 		},
@@ -598,46 +616,46 @@ func TestService_MergeExistingWin(t *testing.T) {
 		// DependsOn
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{""},
+				DependsOnContainer: nil,
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 
@@ -1582,46 +1600,46 @@ func TestService_MergeLastWin(t *testing.T) {
 		// DependsOn
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 		{
 			serviceDeploymentA: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			serviceDeploymentB: &dockerCompose.Service{
-				DependsOn: []string{""},
+				DependsOnContainer: nil,
 			},
 			expectedService: &dockerCompose.Service{
-				DependsOn: []string{"app"},
+				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 		},
 

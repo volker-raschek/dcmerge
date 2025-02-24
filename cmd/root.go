@@ -8,7 +8,7 @@ import (
 	"git.cryptic.systems/volker.raschek/dcmerge/pkg/domain/dockerCompose"
 	"git.cryptic.systems/volker.raschek/dcmerge/pkg/fetcher"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func Execute(version string) error {
@@ -100,10 +100,12 @@ func run(cmd *cobra.Command, args []string) error {
 		defer f.Close()
 
 		yamlEncoder := yaml.NewEncoder(f)
+		yamlEncoder.SetIndent(0)
 		return yamlEncoder.Encode(dockerComposeConfig)
 
 	default:
 		yamlEncoder := yaml.NewEncoder(os.Stdout)
+		yamlEncoder.SetIndent(0)
 		return yamlEncoder.Encode(dockerComposeConfig)
 	}
 

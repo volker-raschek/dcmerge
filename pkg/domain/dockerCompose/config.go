@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -517,19 +519,19 @@ func NewSecret() *Secret {
 }
 
 type Service struct {
-	CapabilitiesAdd  []string                   `json:"cap_add,omitempty" yaml:"cap_add,omitempty"`
-	CapabilitiesDrop []string                   `json:"cap_drop,omitempty" yaml:"cap_drop,omitempty"`
-	DependsOn        []string                   `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
-	Deploy           *ServiceDeploy             `json:"deploy,omitempty" yaml:"deploy,omitempty"`
-	Environments     []string                   `json:"environment,omitempty" yaml:"environment,omitempty"`
-	ExtraHosts       []string                   `json:"extra_hosts,omitempty" yaml:"extra_hosts,omitempty"`
-	Image            string                     `json:"image,omitempty" yaml:"image,omitempty"`
-	Labels           []string                   `json:"labels,omitempty" yaml:"labels,omitempty"`
-	Networks         map[string]*ServiceNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
-	Ports            []Port                     `json:"ports,omitempty" yaml:"ports,omitempty"`
-	Secrets          []string                   `json:"secrets,omitempty" yaml:"secrets,omitempty"`
-	ULimits          *ServiceULimits            `json:"ulimits,omitempty" yaml:"ulimits,omitempty"`
-	Volumes          []string                   `json:"volumes,omitempty" yaml:"volumes,omitempty"`
+	CapabilitiesAdd    []string                   `json:"cap_add,omitempty" yaml:"cap_add,omitempty"`
+	CapabilitiesDrop   []string                   `json:"cap_drop,omitempty" yaml:"cap_drop,omitempty"`
+	DependsOnContainer *DependsOnContainer        `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
+	Deploy             *ServiceDeploy             `json:"deploy,omitempty" yaml:"deploy,omitempty"`
+	Environments       []string                   `json:"environment,omitempty" yaml:"environment,omitempty"`
+	ExtraHosts         []string                   `json:"extra_hosts,omitempty" yaml:"extra_hosts,omitempty"`
+	Image              string                     `json:"image,omitempty" yaml:"image,omitempty"`
+	Labels             []string                   `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Networks           map[string]*ServiceNetwork `json:"networks,omitempty" yaml:"networks,omitempty"`
+	Ports              []Port                     `json:"ports,omitempty" yaml:"ports,omitempty"`
+	Secrets            []string                   `json:"secrets,omitempty" yaml:"secrets,omitempty"`
+	ULimits            *ServiceULimits            `json:"ulimits,omitempty" yaml:"ulimits,omitempty"`
+	Volumes            []string                   `json:"volumes,omitempty" yaml:"volumes,omitempty"`
 }
 
 // ExistsEnvironment returns true if the passed name of environment variable is
@@ -629,7 +631,7 @@ func (s *Service) Equal(equalable Equalable) bool {
 	default:
 		return equalSlice(s.CapabilitiesAdd, service.CapabilitiesAdd) &&
 			equalSlice(s.CapabilitiesDrop, service.CapabilitiesDrop) &&
-			equalSlice(s.DependsOn, service.DependsOn) &&
+			s.DependsOnContainer.Equal(service.DependsOnContainer) &&
 			s.Deploy.Equal(service.Deploy) &&
 			equalSlice(s.Environments, service.Environments) &&
 			equalSlice(s.ExtraHosts, service.ExtraHosts) &&
@@ -661,7 +663,7 @@ func (s *Service) MergeExistingWin(service *Service) {
 	default:
 		s.mergeExistingWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeExistingWinCapabilitiesDrop(service.CapabilitiesDrop)
-		s.mergeExistingWinDependsOn(service.DependsOn)
+		s.mergeExistingWinDependsOnContainer(service.DependsOnContainer)
 		s.mergeExistingWinDeploy(service.Deploy)
 		s.mergeExistingWinEnvironments(service.Environments)
 		s.mergeExistingWinExtraHosts(service.ExtraHosts)
@@ -695,7 +697,7 @@ func (s *Service) MergeLastWin(service *Service) {
 	default:
 		s.mergeLastWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeLastWinCapabilitiesDrop(service.CapabilitiesDrop)
-		s.mergeLastWinDependsOn(service.DependsOn)
+		s.mergeLastWinDependsOnContainer(service.DependsOnContainer)
 		s.mergeLastWinDeploy(service.Deploy)
 		s.mergeLastWinEnvironments(service.Environments)
 		s.mergeLastWinExtraHosts(service.ExtraHosts)
@@ -725,10 +727,22 @@ func (s *Service) mergeExistingWinCapabilitiesDrop(capabilitiesDrop []string) {
 	}
 }
 
-func (s *Service) mergeExistingWinDependsOn(dependsOn []string) {
-	for _, depOn := range dependsOn {
-		if !existsInSlice(s.DependsOn, depOn) && len(depOn) > 0 {
-			s.DependsOn = append(s.DependsOn, depOn)
+func (s *Service) mergeExistingWinDependsOnContainer(dependsOnContainer *DependsOnContainer) {
+	switch {
+	case s.DependsOnContainer != nil && dependsOnContainer == nil:
+		fallthrough
+	case s.DependsOnContainer == nil && dependsOnContainer == nil:
+		return
+	case s.DependsOnContainer == nil && dependsOnContainer != nil:
+		s.DependsOnContainer = dependsOnContainer
+	default:
+		for name, depOn := range dependsOnContainer.DependsOn {
+			if !ExistsInMap(s.DependsOnContainer.DependsOn, name) && depOn != nil {
+				if s.DependsOnContainer.DependsOn == nil {
+					s.DependsOnContainer.DependsOn = make(map[string]*ServiceDependsOn)
+				}
+				s.DependsOnContainer.DependsOn[name] = depOn
+			}
 		}
 	}
 }
@@ -933,14 +947,20 @@ func (s *Service) mergeLastWinCapabilitiesDrop(capabilitiesDrop []string) {
 	}
 }
 
-func (s *Service) mergeLastWinDependsOn(dependsOn []string) {
-	for _, dep := range dependsOn {
-		if len(dep) <= 0 {
-			continue
-		}
-
-		if !existsInSlice(s.DependsOn, dep) {
-			s.DependsOn = append(s.DependsOn, dep)
+func (s *Service) mergeLastWinDependsOnContainer(dependsOnContainer *DependsOnContainer) {
+	switch {
+	case s.DependsOnContainer != nil && dependsOnContainer == nil:
+		fallthrough
+	case s.DependsOnContainer == nil && dependsOnContainer == nil:
+		return
+	case s.DependsOnContainer == nil && dependsOnContainer != nil:
+		s.DependsOnContainer = dependsOnContainer
+	default:
+		for name, depOn := range dependsOnContainer.DependsOn {
+			if s.DependsOnContainer.DependsOn == nil {
+				s.DependsOnContainer.DependsOn = make(map[string]*ServiceDependsOn)
+			}
+			s.DependsOnContainer.DependsOn[name] = depOn
 		}
 	}
 }
@@ -1222,6 +1242,66 @@ func (s *Service) SetVolume(src string, dest string, perm string) {
 	}
 }
 
+const ServiceDependsOnConditionServiceStarted string = "service_started"
+
+// DependsOnContainer is a wrapper to handle different YAML type formats of DependsOn.
+type DependsOnContainer struct {
+	Slice     []string
+	DependsOn map[string]*ServiceDependsOn
+}
+
+// Equal returns true if the passed equalable is equal
+func (sdoc *DependsOnContainer) Equal(equalable Equalable) bool {
+	serviceDependsOnContainer, ok := equalable.(*DependsOnContainer)
+	if !ok {
+		return false
+	}
+
+	switch {
+	case sdoc == nil && serviceDependsOnContainer == nil:
+		return true
+	case sdoc != nil && serviceDependsOnContainer == nil:
+		fallthrough
+	case sdoc == nil && serviceDependsOnContainer != nil:
+		return false
+	default:
+		return equalSlice(sdoc.Slice, serviceDependsOnContainer.Slice) &&
+			EqualStringMap(sdoc.DependsOn, serviceDependsOnContainer.DependsOn)
+	}
+}
+
+// MarshalYAML implements the MarshalYAML interface to customize the behavior when being marshaled into a YAML document.
+func (sdoc *DependsOnContainer) MarshalYAML() (interface{}, error) {
+	return sdoc.DependsOn, nil
+}
+
+// UnmarshalYAML implements the UnmarshalYAML interface to customize the behavior when being unmarshaled into a YAML
+// document.
+func (sdoc *DependsOnContainer) UnmarshalYAML(value *yaml.Node) error {
+	if sdoc.DependsOn == nil {
+		sdoc.DependsOn = make(map[string]*ServiceDependsOn)
+	}
+
+	if sdoc.Slice == nil {
+		sdoc.Slice = make([]string, 0)
+	}
+
+	if err := value.Decode(&sdoc.Slice); err == nil {
+		for _, s := range sdoc.Slice {
+			sdoc.DependsOn[s] = &ServiceDependsOn{
+				Condition: ServiceDependsOnConditionServiceStarted,
+			}
+		}
+		return nil
+	}
+
+	if err := value.Decode(sdoc.DependsOn); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // NewService returns an empty initialized Service.
 func NewService() *Service {
 	return &Service{
@@ -1236,6 +1316,31 @@ func NewService() *Service {
 		Secrets:          make([]string, 0),
 		ULimits:          new(ServiceULimits),
 		Volumes:          make([]string, 0),
+	}
+}
+
+type ServiceDependsOn struct {
+	Condition string `yaml:"condition,omitempty"`
+	Restart   string `yaml:"restart,omitempty"`
+}
+
+// Equal returns true if the passed equalable is equal
+func (sdo *ServiceDependsOn) Equal(equalable Equalable) bool {
+	serviceDependsOn, ok := equalable.(*ServiceDependsOn)
+	if !ok {
+		return false
+	}
+
+	switch {
+	case sdo == nil && serviceDependsOn == nil:
+		return true
+	case sdo != nil && serviceDependsOn == nil:
+		fallthrough
+	case sdo == nil && serviceDependsOn != nil:
+		return false
+	default:
+		return sdo.Condition == serviceDependsOn.Condition &&
+			sdo.Restart == serviceDependsOn.Restart
 	}
 }
 
