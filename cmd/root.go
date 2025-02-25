@@ -100,12 +100,12 @@ func run(cmd *cobra.Command, args []string) error {
 		defer f.Close()
 
 		yamlEncoder := yaml.NewEncoder(f)
-		yamlEncoder.SetIndent(0)
+		yamlEncoder.SetIndent(2)
 		return yamlEncoder.Encode(dockerComposeConfig)
 
 	default:
 		yamlEncoder := yaml.NewEncoder(os.Stdout)
-		yamlEncoder.SetIndent(0)
+		yamlEncoder.SetIndent(2)
 		return yamlEncoder.Encode(dockerComposeConfig)
 	}
 
