@@ -292,6 +292,43 @@ func TestService_Equal(t *testing.T) {
 		},
 		{
 			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{"app"}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: nil,
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{"app"}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{},
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{"app"}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{}},
+			},
+			expectedResult: false,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{"app"}},
+			},
+			equalableB: &dockerCompose.Service{
+				DependsOnContainer: &dockerCompose.DependsOnContainer{Slice: []string{"app"}},
+			},
+			expectedResult: true,
+		},
+
+		{
+			equalableA: &dockerCompose.Service{
 				DependsOnContainer: &dockerCompose.DependsOnContainer{DependsOn: map[string]*dockerCompose.ServiceDependsOn{"app": {Condition: "service_started"}}},
 			},
 			equalableB: &dockerCompose.Service{
