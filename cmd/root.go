@@ -18,7 +18,7 @@ func Execute(version string) error {
 		Long:                  "To load completions",
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-		Args:                  cobra.ExactValidArgs(1),
+		Args:                  cobra.MatchAll(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			switch args[0] {
 			case "bash":
