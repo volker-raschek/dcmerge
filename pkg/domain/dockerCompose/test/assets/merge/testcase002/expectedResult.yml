@@ -1,0 +1,8 @@
+services:
+  backend:
+    image: library/backend:latest
+  frontend:
+    depends_on:
+      backend:
+        condition: service_completed_successfully
+    image: library/frontend:latest

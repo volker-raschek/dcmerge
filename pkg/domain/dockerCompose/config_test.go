@@ -1,11 +1,89 @@
 package dockerCompose_test
 
 import (
+	"bytes"
+	"embed"
+	"strings"
 	"testing"
 
 	"git.cryptic.systems/volker.raschek/dcmerge/pkg/domain/dockerCompose"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
+
+//go:embed test/assets/merge
+var testAssetsMerge embed.FS
+
+func TestConfig_Merge(t *testing.T) {
+	require := require.New(t)
+
+	testAssetPath := "test/assets/merge"
+
+	testAssetMergeDirEntries, err := testAssetsMerge.ReadDir(testAssetPath)
+	require.NoError(err)
+
+	// iterate over testcase directories
+	for i, mergeDirEntry := range testAssetMergeDirEntries {
+		if !mergeDirEntry.IsDir() {
+			continue
+		}
+
+		// iterate over files in testcase directories
+		testCaseAssetPath := testAssetPath + "/" + mergeDirEntry.Name()
+		testCaseDirEntries, err := testAssetsMerge.ReadDir(testCaseAssetPath)
+		require.NoError(err)
+
+		expectedDockerComposeConfig := &dockerCompose.Config{}
+		dockerComposeConfigs := []*dockerCompose.Config{}
+		for _, testCaseDirEntry := range testCaseDirEntries {
+			if testCaseDirEntry.IsDir() {
+				continue
+			}
+
+			dockerComposeConfigFile := testAssetPath + "/" + mergeDirEntry.Name() + "/" + testCaseDirEntry.Name()
+			b, err := testAssetsMerge.ReadFile(dockerComposeConfigFile)
+			require.NoError(err)
+			yamlDecoder := yaml.NewDecoder(bytes.NewReader(b))
+
+			switch {
+			case strings.HasPrefix(testCaseDirEntry.Name(), "expectedResult"):
+				err = yamlDecoder.Decode(expectedDockerComposeConfig)
+				require.NoError(err)
+			case strings.HasSuffix(testCaseDirEntry.Name(), ".yml") || strings.HasSuffix(testCaseDirEntry.Name(), ".yaml"):
+				dockerComposeConfig := &dockerCompose.Config{}
+				err = yamlDecoder.Decode(dockerComposeConfig)
+				require.NoError(err)
+				dockerComposeConfigs = append(dockerComposeConfigs, dockerComposeConfig)
+			}
+		}
+
+		actualDockerComposeConfig := &dockerCompose.Config{}
+		for _, dockerComposeConfig := range dockerComposeConfigs {
+			actualDockerComposeConfig.Merge(dockerComposeConfig)
+		}
+
+		expectedBytes := make([]byte, 0)
+		expectedBytesBuffer := bytes.NewBuffer(expectedBytes)
+		yamlEncoder := yaml.NewEncoder(expectedBytesBuffer)
+		err = yamlEncoder.Encode(expectedDockerComposeConfig)
+		require.NoError(err)
+
+		err = yamlEncoder.Close()
+		require.NoError(err)
+
+		actualBytes := make([]byte, 0)
+		actualBytesBuffer := bytes.NewBuffer(actualBytes)
+		yamlEncoder = yaml.NewEncoder(actualBytesBuffer)
+		err = yamlEncoder.Encode(actualDockerComposeConfig)
+		require.NoError(err)
+
+		err = yamlEncoder.Close()
+		require.NoError(err)
+
+		require.Equal(expectedBytesBuffer.String(), actualBytesBuffer.String(), "TestCase %v", i)
+	}
+
+}
 
 func TestNetwork_Equal(t *testing.T) {
 	require := require.New(t)

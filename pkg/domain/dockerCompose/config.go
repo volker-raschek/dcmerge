@@ -71,24 +71,36 @@ func (c *Config) ExistsVolume(name string) bool {
 func (c *Config) Merge(config *Config) {
 	for name, network := range config.Networks {
 		if !c.ExistsNetwork(name) {
+			if c.Networks == nil {
+				c.Networks = make(map[string]*Network)
+			}
 			c.Networks[name] = network
 		}
 	}
 
 	for name, secret := range config.Secrets {
 		if !c.ExistsSecret(name) {
+			if c.Secrets == nil {
+				c.Secrets = make(map[string]*Secret)
+			}
 			c.Secrets[name] = secret
 		}
 	}
 
 	for name, service := range config.Services {
 		if !c.ExistsService(name) {
+			if c.Services == nil {
+				c.Services = make(map[string]*Service)
+			}
 			c.Services[name] = service
 		}
 	}
 
 	for name, volume := range config.Volumes {
 		if !c.ExistsVolume(name) {
+			if c.Volumes == nil {
+				c.Volumes = make(map[string]*Volume)
+			}
 			c.Volumes[name] = volume
 		}
 	}
@@ -1242,7 +1254,11 @@ func (s *Service) SetVolume(src string, dest string, perm string) {
 	}
 }
 
-const ServiceDependsOnConditionServiceStarted string = "service_started"
+const (
+	ServiceDependsOnConditionServiceCompletedSuccessfully string = "service_completed_successfully"
+	ServiceDependsOnConditionServiceHealthy               string = "service_healthy"
+	ServiceDependsOnConditionServiceStarted               string = "service_started"
+)
 
 // DependsOnContainer is a wrapper to handle different YAML type formats of DependsOn.
 type DependsOnContainer struct {
@@ -1272,7 +1288,25 @@ func (sdoc *DependsOnContainer) Equal(equalable Equalable) bool {
 
 // MarshalYAML implements the MarshalYAML interface to customize the behavior when being marshaled into a YAML document.
 func (sdoc *DependsOnContainer) MarshalYAML() (interface{}, error) {
-	return sdoc.DependsOn, nil
+	var foundAnotherCondition bool = false
+	var dependencyNames []string
+
+	for dependencyName, dependencyDefinition := range sdoc.DependsOn {
+		if dependencyDefinition.Condition == ServiceDependsOnConditionServiceStarted {
+			dependencyNames = append(dependencyNames, dependencyName)
+			continue
+		}
+		foundAnotherCondition = true
+	}
+
+	switch {
+	case foundAnotherCondition:
+		return sdoc.DependsOn, nil
+	case !foundAnotherCondition && len(dependencyNames) > 0:
+		return dependencyNames, nil
+	default:
+		return nil, nil
+	}
 }
 
 // UnmarshalYAML implements the UnmarshalYAML interface to customize the behavior when being unmarshaled into a YAML

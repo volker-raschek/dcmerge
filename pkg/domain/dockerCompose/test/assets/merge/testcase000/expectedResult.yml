@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: library/backend:latest
+  frontend:
+    depends_on:
+    - backend
+    image: library/frontend:latest
