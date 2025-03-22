@@ -13,7 +13,6 @@
       "description": "Automatically update patch version of used container images in docker files",
       "addLabels": [ "renovate/container-image", "renovate/automerge" ],
       "automerge": true,
-      "matchBaseBranches": [ "master" ],
       "matchManagers": [ "dockerfile" ],
       "matchUpdateTypes": [ "minor", "patch" ]
     },
