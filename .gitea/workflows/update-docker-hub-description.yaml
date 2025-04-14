@@ -15,5 +15,5 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_IO_USERNAME }}
         password: ${{ secrets.DOCKER_IO_PASSWORD }}
-        repository: peterevans/dockerhub-description
+        repository: volkerraschek/dcmerge
         readme-filepath: README.md
