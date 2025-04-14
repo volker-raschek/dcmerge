@@ -1,6 +1,5 @@
 # dcmerge
 
-[![Build Status](https://drone.cryptic.systems/api/badges/volker.raschek/dcmerge/status.svg)](https://drone.cryptic.systems/volker.raschek/dcmerge)
 [![Docker Pulls](https://img.shields.io/docker/pulls/volkerraschek/dcmerge)](https://hub.docker.com/r/volkerraschek/dcmerge)
 
 `dcmerge` is a small program to merge docker-compose files from multiple sources. It is available via RPM and docker.
