@@ -26,11 +26,7 @@ DCMERGE_IMAGE_UNQUALIFIED=${DCMERGE_IMAGE_NAMESPACE}/${DCMERGE_IMAGE_NAME}:${DCM
 # ==============================================================================
 dcmerge:
 	CGO_ENABLED=0 \
-	GOPRIVATE=$(shell go env GOPRIVATE) \
 	GOPROXY=$(shell go env GOPROXY) \
-	GONOPROXY=$(shell go env GONOPROXY) \
-	GONOSUMDB=$(shell go env GONOSUMDB) \
-	GOSUMDB=$(shell go env GOSUMDB) \
 		go build -ldflags "-X 'main.version=${VERSION}'" -o ${@} main.go
 
 # CLEAN
@@ -43,15 +39,21 @@ clean:
 # ==============================================================================
 PHONY+=test/unit
 test/unit:
-	go test -v -p 1 -coverprofile=coverage.txt -covermode=count -timeout 1200s ./pkg/...
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go test -v -p 1 -coverprofile=coverage.txt -covermode=count -timeout 1200s ./pkg/...
 
 PHONY+=test/integration
 test/integration:
-	go test -v -p 1 -count=1 -timeout 1200s ./it/...
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go test -v -p 1 -count=1 -timeout 1200s ./it/...
 
 PHONY+=test/coverage
 test/coverage: test/unit
-	go tool cover -html=coverage.txt
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go tool cover -html=coverage.txt
 
 # GOLANGCI-LINT
 # ==============================================================================
