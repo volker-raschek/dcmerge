@@ -1,8 +1,9 @@
 services:
-  backend:
-    image: library/backend:latest
   frontend:
-    depends_on:
-      backend:
-        condition: service_completed_successfully
+    command:
+      - /usr/bin/cp
+      - --recursive
+      - --force
+      - /tmp/foo.txt
+      - /tmp/bar.txt
     image: library/frontend:latest
