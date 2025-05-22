@@ -1,0 +1,4 @@
+services:
+  frontend:
+    command: [ "/usr/bin/cp", "--recursive", "--force", "/tmp/bar.txt", "/tmp/foo.txt"]
+    image: library/frontend:latest

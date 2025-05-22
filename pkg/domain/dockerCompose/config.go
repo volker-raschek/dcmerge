@@ -531,6 +531,7 @@ func NewSecret() *Secret {
 }
 
 type Service struct {
+	Command            []string                   `json:"command,omitempty" yaml:"command,omitempty"`
 	CapabilitiesAdd    []string                   `json:"cap_add,omitempty" yaml:"cap_add,omitempty"`
 	CapabilitiesDrop   []string                   `json:"cap_drop,omitempty" yaml:"cap_drop,omitempty"`
 	DependsOnContainer *DependsOnContainer        `json:"depends_on,omitempty" yaml:"depends_on,omitempty"`
@@ -641,7 +642,8 @@ func (s *Service) Equal(equalable Equalable) bool {
 	case s == nil && service != nil:
 		return false
 	default:
-		return equalSlice(s.CapabilitiesAdd, service.CapabilitiesAdd) &&
+		return equalSlice(s.Command, service.Command) &&
+			equalSlice(s.CapabilitiesAdd, service.CapabilitiesAdd) &&
 			equalSlice(s.CapabilitiesDrop, service.CapabilitiesDrop) &&
 			s.DependsOnContainer.Equal(service.DependsOnContainer) &&
 			s.Deploy.Equal(service.Deploy) &&
@@ -673,6 +675,7 @@ func (s *Service) MergeExistingWin(service *Service) {
 	// 	fallthrough
 
 	default:
+		s.mergeExistingWinCommand(service.Command)
 		s.mergeExistingWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeExistingWinCapabilitiesDrop(service.CapabilitiesDrop)
 		s.mergeExistingWinDependsOnContainer(service.DependsOnContainer)
@@ -707,6 +710,7 @@ func (s *Service) MergeLastWin(service *Service) {
 	// 	fallthrough
 
 	default:
+		s.mergeLastWinCommand(service.Command)
 		s.mergeLastWinCapabilitiesAdd(service.CapabilitiesAdd)
 		s.mergeLastWinCapabilitiesDrop(service.CapabilitiesDrop)
 		s.mergeLastWinDependsOnContainer(service.DependsOnContainer)
@@ -721,6 +725,13 @@ func (s *Service) MergeLastWin(service *Service) {
 		s.mergeLastWinULimits(service.ULimits)
 		s.mergeLastWinVolumes(service.Volumes)
 	}
+}
+
+func (s *Service) mergeExistingWinCommand(command []string) {
+	if len(s.Command) > 0 {
+		return
+	}
+	s.Command = command
 }
 
 func (s *Service) mergeExistingWinCapabilitiesAdd(capabilitiesAdd []string) {
@@ -932,6 +943,12 @@ func (s *Service) mergeExistingWinVolumes(volumes []string) {
 				s.SetVolume(src, dest, perm)
 			}
 		}
+	}
+}
+
+func (s *Service) mergeLastWinCommand(command []string) {
+	if len(command) > 0 {
+		s.Command = command
 	}
 }
 

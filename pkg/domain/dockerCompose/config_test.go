@@ -301,6 +301,7 @@ func TestService_Equal(t *testing.T) {
 		},
 		{
 			equalableA: &dockerCompose.Service{
+				Command:            []string{},
 				CapabilitiesAdd:    []string{},
 				CapabilitiesDrop:   []string{},
 				DependsOnContainer: &dockerCompose.DependsOnContainer{},
@@ -316,6 +317,7 @@ func TestService_Equal(t *testing.T) {
 				Volumes:            []string{},
 			},
 			equalableB: &dockerCompose.Service{
+				Command:            []string{},
 				CapabilitiesAdd:    []string{},
 				CapabilitiesDrop:   []string{},
 				DependsOnContainer: &dockerCompose.DependsOnContainer{},
@@ -329,6 +331,15 @@ func TestService_Equal(t *testing.T) {
 				Secrets:            []string{},
 				ULimits:            nil,
 				Volumes:            []string{},
+			},
+			expectedResult: true,
+		},
+		{
+			equalableA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			equalableB: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
 			},
 			expectedResult: true,
 		},
@@ -634,6 +645,52 @@ func TestService_MergeExistingWin(t *testing.T) {
 			serviceDeploymentA: &dockerCompose.Service{},
 			serviceDeploymentB: &dockerCompose.Service{},
 			expectedService:    &dockerCompose.Service{},
+		},
+
+		// Command
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
 		},
 
 		// CapabilitiesAdd
@@ -1618,6 +1675,52 @@ func TestService_MergeLastWin(t *testing.T) {
 			serviceDeploymentA: &dockerCompose.Service{},
 			serviceDeploymentB: &dockerCompose.Service{},
 			expectedService:    &dockerCompose.Service{},
+		},
+
+		// Command
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+		},
+		{
+			serviceDeploymentA: &dockerCompose.Service{
+				Command: []string{"/usr/bin/cp", "--recursive", "/tmp/foo.txt", "/tmp/bar.txt"},
+			},
+			serviceDeploymentB: &dockerCompose.Service{
+				Command: []string{""},
+			},
+			expectedService: &dockerCompose.Service{
+				Command: []string{""},
+			},
 		},
 
 		// CapabilitiesAdd
