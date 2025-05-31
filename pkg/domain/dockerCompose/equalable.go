@@ -55,8 +55,8 @@ func EqualStringMap[R Equalable](mapA, mapB map[string]R) bool {
 
 // ExistsInMap returns true if object of type any exists under the passed name.
 func ExistsInMap[T any](m map[string]T, name string) bool {
-	switch {
-	case m == nil:
+	switch m {
+	case nil:
 		return false
 	default:
 		_, present := m[name]

@@ -1305,8 +1305,8 @@ func (sdoc *DependsOnContainer) Equal(equalable Equalable) bool {
 
 // MarshalYAML implements the MarshalYAML interface to customize the behavior when being marshaled into a YAML document.
 func (sdoc *DependsOnContainer) MarshalYAML() (interface{}, error) {
-	var foundAnotherCondition bool = false
-	var dependencyNames []string
+	var foundAnotherCondition = false
+	var dependencyNames = make([]string, 0)
 
 	for dependencyName, dependencyDefinition := range sdoc.DependsOn {
 		if dependencyDefinition.Condition == ServiceDependsOnConditionServiceStarted {

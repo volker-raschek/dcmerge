@@ -20,15 +20,15 @@ func Fetch(urls ...string) ([]*dockerCompose.Config, error) {
 			return nil, err
 		}
 
-		switch {
-		case dockerComposeURL.Scheme == "http" || dockerComposeURL.Scheme == "https":
+		switch dockerComposeURL.Scheme {
+		case "http", "https":
 			dockerComposeConfig, err := getDockerComposeViaHTTP(dockerComposeURL.String())
 			if err != nil {
 				return nil, err
 			}
 
 			dockerComposeConfigs = append(dockerComposeConfigs, dockerComposeConfig)
-		case dockerComposeURL.Scheme == "file":
+		case "file":
 			fallthrough
 		default:
 			dockerComposeConfig, err := readDockerComposeFromFile(dockerComposeURL.Path)
@@ -43,7 +43,7 @@ func Fetch(urls ...string) ([]*dockerCompose.Config, error) {
 	return dockerComposeConfigs, nil
 }
 
-var ErrorPathIsDir error = errors.New("Path is a directory")
+var ErrorPathIsDir error = errors.New("path is a directory")
 
 func getDockerComposeViaHTTP(url string) (*dockerCompose.Config, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -55,10 +55,10 @@ func getDockerComposeViaHTTP(url string) (*dockerCompose.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Received unexpected HTTP-Statuscode %v", resp.StatusCode)
+		return nil, fmt.Errorf("received unexpected HTTP-Statuscode %v", resp.StatusCode)
 	}
 
 	dockerCompose := dockerCompose.NewConfig()
@@ -85,7 +85,7 @@ func readDockerComposeFromFile(name string) (*dockerCompose.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	dockerCompose := dockerCompose.NewConfig()
 

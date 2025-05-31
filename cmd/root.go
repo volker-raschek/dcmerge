@@ -19,16 +19,18 @@ func Execute(version string) error {
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.MatchAll(cobra.ExactArgs(1)),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
 			case "bash":
-				cmd.Root().GenBashCompletion(os.Stdout)
+				return cmd.Root().GenBashCompletion(os.Stdout)
 			case "zsh":
-				cmd.Root().GenZshCompletion(os.Stdout)
+				return cmd.Root().GenZshCompletion(os.Stdout)
 			case "fish":
-				cmd.Root().GenFishCompletion(os.Stdout, true)
+				return cmd.Root().GenFishCompletion(os.Stdout, true)
 			case "powershell":
-				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+				return cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			default:
+				return fmt.Errorf("unknown shell: %v", args[0])
 			}
 		},
 	}
@@ -53,17 +55,17 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 func run(cmd *cobra.Command, args []string) error {
 	mergeExisting, err := cmd.Flags().GetBool("existing-win")
 	if err != nil {
-		return fmt.Errorf("Failed to parse flag last-win: %s", err)
+		return fmt.Errorf("failed to parse flag last-win: %s", err)
 	}
 
 	mergeLastWin, err := cmd.Flags().GetBool("last-win")
 	if err != nil {
-		return fmt.Errorf("Failed to parse flag last-win: %s", err)
+		return fmt.Errorf("failed to parse flag last-win: %s", err)
 	}
 
 	outputFile, err := cmd.Flags().GetString("output-file")
 	if err != nil {
-		return fmt.Errorf("Failed to parse flag output-file: %s", err)
+		return fmt.Errorf("failed to parse flag output-file: %s", err)
 	}
 
 	dockerComposeConfig := dockerCompose.NewConfig()
@@ -76,7 +78,7 @@ func run(cmd *cobra.Command, args []string) error {
 	for _, config := range dockerComposeConfigs {
 		switch {
 		case mergeExisting && mergeLastWin:
-			return fmt.Errorf("Neither --first-win or --last-win can be specified - not booth.")
+			return fmt.Errorf("neither --first-win or --last-win can be specified - not booth")
 		case mergeExisting && !mergeLastWin:
 			dockerComposeConfig.MergeExistingWin(config)
 		case !mergeExisting && mergeLastWin:
@@ -97,7 +99,7 @@ func run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 
 		yamlEncoder := yaml.NewEncoder(f)
 		yamlEncoder.SetIndent(2)
