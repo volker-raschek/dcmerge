@@ -20,7 +20,6 @@ DCMERGE_IMAGE_NAMESPACE?=${DCMERGE_IMAGE_REGISTRY_USER}
 DCMERGE_IMAGE_NAME:=${EXECUTABLE}
 DCMERGE_IMAGE_VERSION?=latest
 DCMERGE_IMAGE_FULLY_QUALIFIED=${DCMERGE_IMAGE_REGISTRY_NAME}/${DCMERGE_IMAGE_NAMESPACE}/${DCMERGE_IMAGE_NAME}:${DCMERGE_IMAGE_VERSION}
-DCMERGE_IMAGE_UNQUALIFIED=${DCMERGE_IMAGE_NAMESPACE}/${DCMERGE_IMAGE_NAME}:${DCMERGE_IMAGE_VERSION}
 
 # BIN
 # ==============================================================================
@@ -93,14 +92,13 @@ container-image/build:
 		--no-cache \
 		--pull \
 		--tag ${DCMERGE_IMAGE_FULLY_QUALIFIED} \
-		--tag ${DCMERGE_IMAGE_UNQUALIFIED} \
 		.
 
 # DELETE CONTAINER IMAGE
 # ==============================================================================
 PHONY:=container-image/delete
 container-image/delete:
-	- ${CONTAINER_RUNTIME} image rm ${DCMERGE_IMAGE_FULLY_QUALIFIED} ${DCMERGE_IMAGE_UNQUALIFIED}
+	- ${CONTAINER_RUNTIME} image rm ${DCMERGE_IMAGE_FULLY_QUALIFIED}
 
 # PUSH CONTAINER IMAGE
 # ==============================================================================
