@@ -43,7 +43,7 @@ func Fetch(urls ...string) ([]*dockerCompose.Config, error) {
 	return dockerComposeConfigs, nil
 }
 
-var ErrorPathIsDir error = errors.New("path is a directory")
+var ErrPathIsDir error = errors.New("path is a directory")
 
 func getDockerComposeViaHTTP(url string) (*dockerCompose.Config, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -78,9 +78,10 @@ func readDockerComposeFromFile(name string) (*dockerCompose.Config, error) {
 	case err != nil:
 		return nil, err
 	case fileStat.IsDir():
-		return nil, fmt.Errorf("%w: %s", ErrorPathIsDir, name)
+		return nil, fmt.Errorf("%w: %s", ErrPathIsDir, name)
 	}
 
+	// #nosec G304
 	file, err := os.Open(name)
 	if err != nil {
 		return nil, err

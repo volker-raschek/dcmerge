@@ -90,11 +90,13 @@ func run(cmd *cobra.Command, args []string) error {
 
 	switch {
 	case len(outputFile) > 0:
+		// #nosec G301
 		err = os.MkdirAll(filepath.Dir(outputFile), 0755)
 		if err != nil {
 			return err
 		}
 
+		// #nosec G304
 		f, err := os.Create(outputFile)
 		if err != nil {
 			return err
