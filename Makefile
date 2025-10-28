@@ -52,7 +52,7 @@ PHONY+=test/coverage
 test/coverage: test/unit
 	CGO_ENABLED=0 \
 	GOPROXY=$(shell go env GOPROXY) \
-		go tool cover -html=coverage.txt
+		go tool cover -func=coverage.txt
 
 # GOLANGCI-LINT
 # ==============================================================================
