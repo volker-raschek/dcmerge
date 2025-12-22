@@ -55,7 +55,7 @@ dcmerge docker-compose.yml https://git.example.local/user/repo/docker-compose.ym
 func run(cmd *cobra.Command, args []string) error {
 	mergeExisting, err := cmd.Flags().GetBool("existing-win")
 	if err != nil {
-		return fmt.Errorf("failed to parse flag last-win: %s", err)
+		return fmt.Errorf("failed to parse flag existing-win: %s", err)
 	}
 
 	mergeLastWin, err := cmd.Flags().GetBool("last-win")
@@ -78,7 +78,7 @@ func run(cmd *cobra.Command, args []string) error {
 	for _, config := range dockerComposeConfigs {
 		switch {
 		case mergeExisting && mergeLastWin:
-			return fmt.Errorf("neither --first-win or --last-win can be specified - not booth")
+			return fmt.Errorf("neither --existing-win or --last-win can be specified - not booth")
 		case mergeExisting && !mergeLastWin:
 			dockerComposeConfig.MergeExistingWin(config)
 		case !mergeExisting && mergeLastWin:
