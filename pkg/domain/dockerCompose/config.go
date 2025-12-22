@@ -182,7 +182,7 @@ func (c *Config) mergeExistingWinSecrets(secrets map[string]*Secret) {
 			continue
 		}
 
-		if c.ExistsNetwork(secretName) {
+		if c.ExistsSecret(secretName) {
 			c.Secrets[secretName].MergeExistingWin(secret)
 		} else {
 			c.Secrets[secretName] = secret
@@ -210,7 +210,7 @@ func (c *Config) mergeExistingWinVolumes(volumes map[string]*Volume) {
 			continue
 		}
 
-		if c.ExistsNetwork(volumeName) {
+		if c.ExistsVolume(volumeName) {
 			c.Volumes[volumeName].MergeExistingWin(volume)
 		} else {
 			c.Volumes[volumeName] = volume
