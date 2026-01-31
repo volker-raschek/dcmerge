@@ -1,5 +1,6 @@
 # dcmerge
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dcmerge)](https://artifacthub.io/packages/search?repo=dcmerge)
 [![Docker Pulls](https://img.shields.io/docker/pulls/volkerraschek/dcmerge)](https://hub.docker.com/r/volkerraschek/dcmerge)
 
 `dcmerge` is a small program to merge docker-compose files from multiple sources. It is available via RPM and docker.
