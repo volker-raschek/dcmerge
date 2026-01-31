@@ -1,5 +1,4 @@
 FROM scratch AS build
-
-COPY dcmerge-* /usr/bin/dcmerge
-
+ARG TARGETPLATFORM
+COPY "${TARGETPLATFORM}/dcmerge" "/usr/bin/dcmerge"
 ENTRYPOINT [ "/usr/bin/dcmerge" ]

@@ -145,7 +145,7 @@ nfpms:
   description: |-
     dcmerge is a tool to merge docker-compose files from multiple resources.
     It supports merging local files and remote files via HTTP/HTTPS.
-  license: Apache 2.0
+  license: MIT
   formats:
   - deb
   - rpm
