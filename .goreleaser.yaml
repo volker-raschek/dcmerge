@@ -311,6 +311,51 @@ sboms:
   - "--enrich=all"
   - "--output=spdx-json=$document"
 
+docker_signs:
+- # ID of the sign config, must be unique.
+  # Only relevant if you want to produce some sort of signature file.
+  #
+  # Default: 'default'.
+  id: container-images
+
+  # Path to the signature command.
+  #
+  # Default: 'cosign'.
+  cmd: cosign
+
+  # Command line arguments for the command.
+  #
+  # Default: ["sign", "--key=cosign.key", "${artifact}@${digest}", "--yes"].
+  # Templates: allowed.
+  args:
+  - "sign"
+  - "--key=env://COSIGN_PRIVATE_KEY"
+  - "${artifact}@${digest}"
+  - "--yes"
+
+  # Which artifacts to sign.
+  #
+  #   all:       all artifacts
+  #   none:      no signing
+  #   images:    only docker images
+  #   manifests: only docker manifests
+  #   '':        images built by dockers_v2
+  #
+  # Default: ''.
+  artifacts: all
+
+  # IDs of the artifacts to sign.
+  ids:
+  - container-images
+
+  # Stdin data to be given to the signature command as stdin.
+  #
+  # Templates: allowed.
+  stdin: "{{ .Env.COSIGN_PASSPHRASE }}"
+
+  # StdinFile file to be given to the signature command as stdin.
+  # stdin_file: ./passphrase.key
+
 gitea_urls:
   api: https://git.cryptic.systems/api/v1
   download: https://git.cryptic.systems

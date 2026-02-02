@@ -31,6 +31,9 @@ jobs:
             "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_${OS}_${ARCH}.deb"
         dpkg -i syft_${SYFT_VERSION}_${OS}_${ARCH}.deb
         rm syft_${SYFT_VERSION}_${OS}_${ARCH}.deb
+    - uses: sigstore/cosign-installer@v4.0.0
+      with:
+        cosign-release: "v3.0.3" # renovate: datasource=github-tags depName=sigstore/cosign
     - uses: docker/setup-qemu-action@v3.7.0
     - uses: docker/setup-buildx-action@v3.12.0
     - uses: actions/setup-go@v6.2.0
@@ -42,6 +45,8 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GIT_CRYPTIC_SYSTEMS_PACKAGE_REGISTRY_TOKEN }}
     - env:
+        COSIGN_PASSPHRASE: ${{ secrets.COSIGN_PASSPHRASE }}
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         GITEA_TOKEN: ${{ secrets.GIT_CRYPTIC_SYSTEMS_PACKAGE_REGISTRY_TOKEN }}
         GONOSUMDB: ${{ vars.GONOSUMDB }}
         GOPROXY: ${{ vars.GOPROXY }}
