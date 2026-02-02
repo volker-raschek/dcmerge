@@ -327,11 +327,13 @@ docker_signs:
   #
   # Default: ["sign", "--key=cosign.key", "${artifact}@${digest}", "--yes"].
   # Templates: allowed.
+  # Note: Using --registry-referrers-mode=legacy ensures signature is stored as sha256-<digest>.sig tag
+  # which is required by ArtifactHub to display the "Signed" badge
   args:
   - "sign"
   - "--key=env://COSIGN_PRIVATE_KEY"
-  - "${artifact}@${digest}"
   - "--yes"
+  - "${artifact}@${digest}"
 
   # Which artifacts to sign.
   #
@@ -355,6 +357,8 @@ docker_signs:
 
   # StdinFile file to be given to the signature command as stdin.
   # stdin_file: ./passphrase.key
+
+  output: true
 
 gitea_urls:
   api: https://git.cryptic.systems/api/v1
