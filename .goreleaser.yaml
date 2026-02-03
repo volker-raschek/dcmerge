@@ -334,7 +334,6 @@ docker_signs:
   - "sign"
   - "--key=env://COSIGN_PRIVATE_KEY"
   - "--yes"
-  - "--registry-referrers-mode=legacy"
   - "${artifact}@${digest}"
 
   # Which artifacts to sign.
@@ -346,7 +345,7 @@ docker_signs:
   #   '':        images built by dockers_v2
   #
   # Default: ''.
-  artifacts: all
+  artifacts: manifests
 
   # IDs of the artifacts to sign.
   ids:

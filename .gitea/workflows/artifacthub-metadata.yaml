@@ -38,6 +38,7 @@ jobs:
         echo "${COSIGN_PUBLIC_KEY}" > cosign.pub
         oras push git.cryptic.systems/volker.raschek/dcmerge:cosign.pub \
           --artifact-type application/vnd.dev.cosign.public-key.v1 \
+          --annotation org.opencontainers.image.title=cosign.pub \
           cosign.pub:application/vnd.dev.cosign.public-key.v1
 
     - name: Push artifacthub-repo.yml to docker.io
