@@ -104,6 +104,7 @@ dockers_v2:
 
     io.artifacthub.package.alternative-locations: "docker.io/volkerraschek/{{ .ProjectName }}:{{ .Version }}"
     io.artifacthub.package.keywords: "docker,docker-compose,merge,ci"
+    io.artifacthub.package.logo-url: "https://git.cryptic.systems/volker.raschek/{{ .ProjectName }}/raw/tag/v{{ .Version }}/icons/icon.png"
     io.artifacthub.package.license: "MIT"
     io.artifacthub.package.readme-url: "https://git.cryptic.systems/volker.raschek/{{ .ProjectName }}/raw/tag/v{{ .Version }}/README.md"
 
@@ -333,6 +334,7 @@ docker_signs:
   - "sign"
   - "--key=env://COSIGN_PRIVATE_KEY"
   - "--yes"
+  - "--registry-referrers-mode=legacy"
   - "${artifact}@${digest}"
 
   # Which artifacts to sign.
