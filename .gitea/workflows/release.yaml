@@ -33,7 +33,7 @@ jobs:
         rm syft_${SYFT_VERSION}_${OS}_${ARCH}.deb
     - uses: sigstore/cosign-installer@v4.1.0
       with:
-        cosign-release: "v2.6.2" # renovate: datasource=github-tags depName=sigstore/cosign
+        cosign-release: "v2.6.3" # renovate: datasource=github-tags depName=sigstore/cosign
     - uses: docker/setup-qemu-action@v4.0.0
     - uses: docker/setup-buildx-action@v4.0.0
     - uses: actions/setup-go@v6.3.0
