@@ -31,7 +31,7 @@ jobs:
             "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_${OS}_${ARCH}.deb"
         dpkg -i syft_${SYFT_VERSION}_${OS}_${ARCH}.deb
         rm syft_${SYFT_VERSION}_${OS}_${ARCH}.deb
-    - uses: sigstore/cosign-installer@v4.1.1
+    - uses: volker-raschek/cosign-installer@v4.1.2-rc3
       with:
         cosign-release: "v3.0.6" # renovate: datasource=github-tags depName=sigstore/cosign
     - uses: docker/setup-qemu-action@v4.0.0
